@@ -1,0 +1,159 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  gap: 25px;
+}
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+.full {
+  grid-column: 1/-1;
+}
+.steps {
+  margin: 5px 0 30px;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.roomPreview {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.hint {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.9;
+}
+.scheduleTools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.scheduleTools > div:first-child {
+  min-width: 240px;
+}
+.legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  margin: 20px 0;
+  color: var(--text-muted);
+}
+.legend span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #69b093;
+}
+.legend span:nth-child(2) i {
+  background: #b394d9;
+}
+.legend span:nth-child(3) i {
+  background: #dcc06c;
+}
+.slot {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  min-height: 75px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: 20px;
+}
+.slotTime {
+  font-family: Manrope, sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.slot button {
+  width: 100%;
+  border: 1px dashed var(--border);
+  background: var(--surface-subtle);
+  padding: 14px 18px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  color: var(--text-accent);
+  transition: background 0.15s;
+}
+.slot button:hover {
+  background: var(--purple-soft);
+}
+.occupied {
+  padding: 14px 18px;
+  border-radius: 6px;
+  background: var(--purple-soft);
+  color: var(--text-accent);
+  font-size: 14px;
+}
+.pending {
+  background: var(--yellow-soft);
+  color: var(--text-warning);
+}
+.unavailable {
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+}
+.summary {
+  line-height: 2;
+}
+.filterRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.filterRow > div {
+  min-width: 170px;
+}
+.summary :global(.ant-descriptions-item-label) {
+  min-width: 140px;
+}
+@media (max-width: 950px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .layout > aside {
+    order: -1;
+  }
+  .roomPreview {
+    height: 160px;
+  }
+}
+@media (max-width: 550px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .slot {
+    grid-template-columns: 105px 1fr;
+    gap: 10px;
+  }
+  .slotTime {
+    font-size: 12px;
+  }
+  .scheduleTools > div:first-child {
+    width: 100%;
+  }
+  .actions {
+    flex-wrap: wrap;
+  }
+  .filterRow > div {
+    width: 100%;
+  }
+}
