@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { Button } from "antd";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDatabase } from "../../services/queries";
 import {
   DataTable,
@@ -13,6 +13,7 @@ import type { Booking } from "../../types";
 import { Analytics } from "./Analytics";
 import styles from "./Admin.module.css";
 export function DashboardPage() {
+  const navigate = useNavigate();
   const query = useDatabase();
   const db = query.data;
   const bookings = db?.bookings ?? [];
@@ -22,9 +23,9 @@ export function DashboardPage() {
         title="Dashboard"
         subtitle={`ภาพรวมการใช้ห้องเรียน · ${dayjs().format("DD MMMM YYYY")}`}
         action={
-          <Link to="/admin/bookings">
-            <Button type="primary">จัดการการจอง</Button>
-          </Link>
+          <Button type="primary" onClick={() => navigate("/admin/bookings")}>
+            จัดการการจอง
+          </Button>
         }
       />
       <QueryState

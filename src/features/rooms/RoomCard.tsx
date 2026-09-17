@@ -68,9 +68,11 @@ export function RoomCard({ room, busy }: { room: Room; busy?: boolean }) {
               </span>
             );
           })}
-          <Tooltip title={room.equipment.slice(3).join(", ")}>
-            <span>+{room.equipment.length - 3}</span>
-          </Tooltip>
+          {room.equipment.length > 3 && (
+            <Tooltip title={room.equipment.slice(3).join(", ")}>
+              <span>+{room.equipment.length - 3}</span>
+            </Tooltip>
+          )}
         </div>
         <div className={styles.cardActions}>
           <Button type="text" onClick={() => navigate(`/rooms/${room.id}`)}>

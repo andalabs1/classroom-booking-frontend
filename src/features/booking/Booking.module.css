@@ -153,6 +153,10 @@
   .actions {
     flex-wrap: wrap;
   }
+  .actions > button {
+    flex: 1;
+    min-height: 44px;
+  }
   .filterRow > div {
     width: 100%;
   }
