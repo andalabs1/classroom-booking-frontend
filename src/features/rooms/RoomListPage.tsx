@@ -69,6 +69,19 @@ export function RoomListPage() {
         ? b.capacity - a.capacity
         : a.code.localeCompare(b.code),
     );
+  const hasFilters = Boolean(
+    search ||
+    building ||
+    capacity ||
+    status ||
+    floor ||
+    equipment ||
+    category !== "ทั้งหมด",
+  );
+  const currentPage = Math.min(
+    page,
+    Math.max(1, Math.ceil(filtered.length / 6)),
+  );
   const reset = () => {
     setSearch("");
     setBuilding(undefined);
@@ -83,7 +96,7 @@ export function RoomListPage() {
     <>
       <PageHeader
         title={t("roomTitle")}
-        subtitle={t("roomSubtitle")}
+        subtitle="ค้นหาห้องตามอาคาร จำนวนที่นั่ง และอุปกรณ์ แล้วเลือกเวลาที่ต้องการจอง"
         action={
           <Button
             icon={<CalendarDays size={16} />}
@@ -176,11 +189,13 @@ export function RoomListPage() {
         <section className={styles.catalog}>
           <div className={styles.catalogHeading}>
             <h2>
-              ค้นหาห้องเรียน <span>เลือกพื้นที่ที่ตอบโจทย์คุณ</span>
+              ค้นหาห้องเรียน <span>เลือกเงื่อนไขที่ต้องการ</span>
             </h2>
-            <span className={styles.live}>
-              <span /> อัปเดตข้อมูลพร้อมใช้งาน
-            </span>
+            {hasFilters && (
+              <Button type="text" icon={<X size={14} />} onClick={reset}>
+                ล้างตัวกรอง
+              </Button>
+            )}
           </div>
           <div className={styles.filters}>
             <Input
@@ -239,15 +254,18 @@ export function RoomListPage() {
             />
             <Button
               aria-label="ตัวกรองเพิ่มเติม"
+              aria-expanded={more}
+              aria-controls="additional-room-filters"
               icon={<SlidersHorizontal size={17} />}
               onClick={() => setMore(!more)}
               type={more ? "primary" : "default"}
             />
           </div>
           {more && (
-            <div className={styles.extraFilters}>
+            <div className={styles.extraFilters} id="additional-room-filters">
               <Select
                 allowClear
+                aria-label="ชั้น"
                 placeholder="ทุกชั้น"
                 value={floor}
                 onChange={(v) => {
@@ -263,6 +281,7 @@ export function RoomListPage() {
               />
               <Select
                 allowClear
+                aria-label="อุปกรณ์"
                 placeholder="อุปกรณ์"
                 value={equipment}
                 onChange={(v) => {
@@ -286,6 +305,7 @@ export function RoomListPage() {
               (tab) => (
                 <button
                   key={tab}
+                  aria-pressed={category === tab}
                   className={category === tab ? styles.selectedTab : ""}
                   onClick={() => {
                     setCategory(tab);
@@ -316,27 +336,28 @@ export function RoomListPage() {
               options={[
                 {
                   value: "grid",
-                  icon: <LayoutGrid size={16} />,
+                  icon: <LayoutGrid size={16} aria-label="มุมมองตาราง" />,
                   title: "ตาราง",
                 },
-                { value: "list", icon: <List size={16} />, title: "รายการ" },
+                {
+                  value: "list",
+                  icon: <List size={16} aria-label="มุมมองรายการ" />,
+                  title: "รายการ",
+                },
               ]}
             />
           </div>
         </div>
-        <div className={styles.resultCount}>
+        <div className={styles.resultCount} role="status" aria-live="polite">
           พบ <strong>{filtered.length}</strong> ห้องเรียน{" "}
-          <span>พร้อมให้คุณเลือกพื้นที่สำหรับการเรียนรู้</span>
+          <span>เลือกห้องเพื่อดูรายละเอียดหรือตรวจสอบตาราง</span>
         </div>
         {filtered.length ? (
           <div
             className={`${styles.roomGrid} ${view === "list" ? styles.listView : ""}`}
           >
             {filtered
-              .slice(
-                (Math.min(page, Math.ceil(filtered.length / 6)) - 1) * 6,
-                Math.min(page, Math.ceil(filtered.length / 6)) * 6,
-              )
+              .slice((currentPage - 1) * 6, currentPage * 6)
               .map((room) => (
                 <RoomCard
                   key={room.id}
@@ -352,11 +373,12 @@ export function RoomListPage() {
         )}
         <div className={styles.pagination}>
           <span>
-            แสดง {filtered.length ? (page - 1) * 6 + 1 : 0}–
-            {Math.min(page * 6, filtered.length)} จาก {filtered.length} ห้อง
+            แสดง {filtered.length ? (currentPage - 1) * 6 + 1 : 0}–
+            {Math.min(currentPage * 6, filtered.length)} จาก {filtered.length}{" "}
+            ห้อง
           </span>
           <Pagination
-            current={page}
+            current={currentPage}
             onChange={setPage}
             total={filtered.length}
             pageSize={6}

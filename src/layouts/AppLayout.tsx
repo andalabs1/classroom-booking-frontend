@@ -57,7 +57,12 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
     });
   const sidebar = (
     <>
-      <Link to="/rooms" className={styles.brand}>
+      <Link
+        to="/rooms"
+        className={styles.brand}
+        aria-label="Classroom หน้าห้องเรียน"
+        onClick={() => setDrawer(false)}
+      >
         <span className={styles.brandIcon}>
           <BookOpen size={24} />
         </span>
@@ -73,6 +78,8 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
           <NavLink
             key={item.path}
             to={item.path}
+            aria-label={admin ? item.title : t(item.key)}
+            title={collapsed ? (admin ? item.title : t(item.key)) : undefined}
             onClick={() => setDrawer(false)}
             className={({ isActive }) => (isActive ? styles.active : "")}
           >
@@ -92,11 +99,23 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
             <br />
             แล้วมาเรียนรู้ไปด้วยกัน
           </p>
-          <Button type="link" onClick={() => navigate("/room-schedule")}>
+          <Button
+            type="link"
+            onClick={() => {
+              setDrawer(false);
+              navigate("/room-schedule");
+            }}
+          >
             ดูตารางการใช้ห้อง <ChevronRight size={14} />
           </Button>
         </div>
-        <button className={styles.help} onClick={help}>
+        <button
+          className={styles.help}
+          onClick={() => {
+            setDrawer(false);
+            help();
+          }}
+        >
           <CircleHelp size={18} />
           ศูนย์ช่วยเหลือ
         </button>
@@ -104,6 +123,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
           <Link
             className={styles.help}
             to={admin ? "/rooms" : "/admin/dashboard"}
+            onClick={() => setDrawer(false)}
           >
             <ShieldCheck size={18} />
             {admin ? "หน้าผู้ใช้งาน" : "Admin Back Office"}
@@ -120,6 +140,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
     <div className={`${styles.shell} ${collapsed ? styles.collapsed : ""}`}>
       <aside className={styles.sidebar}>{sidebar}</aside>
       <Drawer
+        title="เมนูหลัก"
         open={drawer}
         onClose={() => setDrawer(false)}
         placement="left"
@@ -141,7 +162,8 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
             <Button
               className={styles.desktopToggle}
               type="text"
-              aria-label="ย่อเมนู"
+              aria-label={collapsed ? "ขยายเมนู" : "ย่อเมนู"}
+              aria-expanded={!collapsed}
               icon={<PanelLeftClose size={18} />}
               onClick={() => setCollapsed(!collapsed)}
             />
@@ -184,7 +206,10 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
                   ],
                 }}
               >
-                <button className={styles.profile}>
+                <button
+                  className={styles.profile}
+                  aria-label={`เมนูบัญชี ${user.firstName} ${user.lastName}`}
+                >
                   <Avatar className={styles.avatar}>
                     {user.firstName.slice(0, 1)}
                   </Avatar>
