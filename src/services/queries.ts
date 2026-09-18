@@ -6,6 +6,10 @@ import {
   type ClassroomRange,
 } from "../api/classrooms";
 import { bookingsApi, type BookingFilters } from "../api/bookings";
+import {
+  notificationsApi,
+  type NotificationFilters,
+} from "../api/notifications";
 import { mockService } from "./mockService";
 export function useDatabase() {
   return useQuery({ queryKey: ["database"], queryFn: mockService.database });
@@ -54,6 +58,20 @@ export function useBooking(id: string | undefined) {
     queryKey: ["bookings", id],
     queryFn: () => bookingsApi.get(id!),
     enabled: Boolean(id),
+  });
+}
+
+export function useNotifications(filters: NotificationFilters = {}) {
+  return useQuery({
+    queryKey: ["notifications", filters],
+    queryFn: () => notificationsApi.list(filters),
+  });
+}
+
+export function useUnreadNotificationCount() {
+  return useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: notificationsApi.unreadCount,
   });
 }
 export function useAction<T, R>(

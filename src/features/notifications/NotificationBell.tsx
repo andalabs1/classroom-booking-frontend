@@ -10,11 +10,14 @@ import {
   CircleX,
   XCircle,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
-import { mockService } from "../../services/mockService";
-import { useAction } from "../../services/queries";
+import { notificationsApi } from "../../api/notifications";
+import {
+  useAction,
+  useNotifications,
+  useUnreadNotificationCount,
+} from "../../services/queries";
 import { QueryState } from "../../components/common/Common";
 import type { BookingNotification, User } from "../../types";
 import styles from "./Notifications.module.css";
@@ -23,15 +26,14 @@ export function NotificationBell({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("all");
   const navigate = useNavigate();
-  const query = useQuery({
-    queryKey: ["notifications", user.id],
-    queryFn: () => mockService.notifications(user.id),
+  const query = useNotifications({ limit: 100 });
+  const unreadQuery = useUnreadNotificationCount();
+  const read = useAction(async (id: string | undefined) => {
+    if (id) await notificationsApi.markRead(id);
+    else await notificationsApi.markAllRead();
   });
-  const read = useAction((id: string | undefined) =>
-    mockService.markNotificationsRead(user.id, id),
-  );
-  const items = query.data ?? [];
-  const unread = items.filter((item) => !item.readAt).length;
+  const items = query.data?.items ?? [];
+  const unread = unreadQuery.data ?? 0;
   const visible =
     filter === "unread" ? items.filter((item) => !item.readAt) : items;
   const notificationIcon = (item: BookingNotification) => {
@@ -45,9 +47,10 @@ export function NotificationBell({ user }: { user: User }) {
     read.mutate(item.id, {
       onSuccess: () => {
         setOpen(false);
-        navigate(
-          `${user.role === "ADMIN" ? "/admin/bookings" : "/booking-history"}?booking=${encodeURIComponent(item.bookingId)}`,
-        );
+        if (item.bookingId)
+          navigate(
+            `${user.role === "ADMIN" ? "/admin/bookings" : "/booking-history"}?booking=${encodeURIComponent(item.bookingId)}`,
+          );
       },
     });
   };
@@ -131,7 +134,7 @@ export function NotificationBell({ user }: { user: User }) {
                       </strong>
                       <span>{item.message}</span>
                       <small>
-                        {item.bookingId} ·{" "}
+                        {item.bookingId ?? "แจ้งเตือนระบบ"} ·{" "}
                         {dayjs(item.createdAt).format("DD MMM YYYY HH:mm")}
                       </small>
                     </span>

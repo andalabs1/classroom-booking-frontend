@@ -53,7 +53,7 @@ export type Booking = BookingDraft & {
 export type BookingNotification = {
   id: string;
   userId: string;
-  bookingId: string;
+  bookingId: string | null;
   title: string;
   message: string;
   createdAt: string;
