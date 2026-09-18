@@ -7,7 +7,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAction } from "../../services/queries";
-import { mockService } from "../../services/mockService";
+import { authApi } from "../../api/auth";
 import { useAuth } from "../../stores/authStore";
 import styles from "./Auth.module.css";
 const loginSchema = z.object({
@@ -39,16 +39,14 @@ export function LoginPage() {
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "student@university.ac.th",
-      password: "Demo1234!",
+      username: "",
+      password: "",
     },
   });
   const navigate = useNavigate();
   const location = useLocation();
-  const setUser = useAuth((s) => s.setUser);
-  const mutation = useAction((data: LoginValues) =>
-    mockService.login(data.username, data.password),
-  );
+  const setSession = useAuth((s) => s.setSession);
+  const mutation = useAction((data: LoginValues) => authApi.login(data));
   const { modal } = App.useApp();
   return (
     <div className={styles.auth}>
@@ -80,8 +78,8 @@ export function LoginPage() {
           layout="vertical"
           onFinish={handleSubmit((data) =>
             mutation.mutate(data, {
-              onSuccess: (user) => {
-                setUser(user);
+              onSuccess: ({ user, token }) => {
+                setSession(user, token);
                 const from = (location.state as { from?: string } | null)?.from;
                 navigate(
                   from && from.startsWith("/") && !from.startsWith("//")
@@ -190,16 +188,13 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const mutation = useAction(
     (data: RegisterValues) =>
-      mockService.register({
-        id: data.id,
+      authApi.register({
         firstName: data.firstName,
         lastName: data.lastName,
+        userCode: data.id,
         email: data.email,
         phone: data.phone,
         password: data.password,
-        role: "USER",
-        status: "ACTIVE",
-        registeredAt: new Date().toISOString(),
       }),
     "สมัครสมาชิกสำเร็จ",
   );

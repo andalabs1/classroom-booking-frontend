@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import { userMenuConfig } from "../config/userMenuConfig";
 import { adminMenuConfig } from "../config/adminMenuConfig";
 import { useAuth } from "../stores/authStore";
+import { authApi } from "../api/auth";
 import styles from "./AppLayout.module.css";
 export function AppLayout({ admin = false }: { admin?: boolean }) {
   const [drawer, setDrawer] = useState(false);
@@ -198,8 +199,12 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
                       key: "logout",
                       label: t("logout"),
                       icon: <LogOut size={14} />,
-                      onClick: () => {
-                        logout();
+                      onClick: async () => {
+                        try {
+                          await authApi.logout();
+                        } finally {
+                          logout();
+                        }
                         navigate("/login");
                       },
                     },

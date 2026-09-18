@@ -4,7 +4,7 @@ import type { User } from "../types";
 type AuthState = {
   user: User | null;
   token: string | null;
-  setUser: (user: User) => void;
+  setSession: (user: User, token: string) => void;
   logout: () => void;
 };
 export const useAuth = create<AuthState>()(
@@ -12,7 +12,7 @@ export const useAuth = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
-      setUser: (user) => set({ user, token: `mock-${user.id}` }),
+      setSession: (user, token) => set({ user, token }),
       logout: () => set({ user: null, token: null }),
     }),
     { name: "classroom-auth" },
