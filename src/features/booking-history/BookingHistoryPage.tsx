@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { App, Button, DatePicker, Modal, Select, Space } from "antd";
 import dayjs from "dayjs";
-import { Eye, Pencil, X } from "lucide-react";
+import { CheckCircle, Eye, Pencil, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useDatabase, useAction } from "../../services/queries";
-import { mockService } from "../../services/mockService";
-import { useAuth } from "../../stores/authStore";
+import { bookingsApi } from "../../api/bookings";
+import { useBooking, useBookings, useAction } from "../../services/queries";
 import type { Booking } from "../../types";
 import { bookingLabels } from "../../constants/bookingStatus";
 import { canChangeBooking } from "../../utils/bookingRules";
@@ -19,8 +18,7 @@ import { BookingStatusTag } from "../../components/data-display/StatusTags";
 import { BookingSummary } from "../booking/BookingSummary";
 import styles from "../booking/Booking.module.css";
 export function BookingHistoryPage() {
-  const query = useDatabase();
-  const user = useAuth((s) => s.user)!;
+  const query = useBookings({ scope: "mine", limit: 100 });
   const [status, setStatus] = useState<string>();
   const [roomId, setRoomId] = useState<string>();
   const [range, setRange] = useState<[string, string]>();
@@ -28,9 +26,8 @@ export function BookingHistoryPage() {
   const [params, setParams] = useSearchParams();
   const selected =
     selectedLocal ??
-    query.data?.bookings.find(
-      (b) => b.id === params.get("booking") && b.userId === user.id,
-    );
+    query.data?.items.find((b) => b.id === params.get("booking"));
+  const bookingQuery = useBooking(selected?.id);
   const closeDetails = () => {
     setSelected(undefined);
     const next = new URLSearchParams(params);
@@ -40,13 +37,16 @@ export function BookingHistoryPage() {
   const navigate = useNavigate();
   const { modal } = App.useApp();
   const cancel = useAction(
-    (id: string) => mockService.status(id, "CANCELLED", user.id),
+    (id: string) => bookingsApi.cancel(id),
     "ยกเลิกการจองสำเร็จ",
   );
-  const rows = query.data?.bookings
+  const checkIn = useAction(
+    (id: string) => bookingsApi.checkIn(id),
+    "เช็กอินสำเร็จ",
+  );
+  const rows = query.data?.items
     .filter(
       (b) =>
-        b.userId === user.id &&
         (!status || b.status === status) &&
         (!roomId || b.roomId === roomId) &&
         (!range || (b.date >= range[0] && b.date <= range[1])),
@@ -84,10 +84,11 @@ export function BookingHistoryPage() {
               placeholder="ทุกห้อง"
               value={roomId}
               onChange={setRoomId}
-              options={query.data?.rooms.map((r) => ({
-                value: r.id,
-                label: r.code,
-              }))}
+              options={query.data?.items.flatMap((booking) =>
+                booking.room
+                  ? [{ value: booking.room.id, label: booking.room.code }]
+                  : [],
+              )}
             />
             <Select
               allowClear
@@ -107,7 +108,7 @@ export function BookingHistoryPage() {
               {
                 title: "ห้อง",
                 render: (_, b) =>
-                  query.data?.rooms.find((r) => r.id === b.roomId)?.code,
+                  b.room?.code,
               },
               {
                 title: "วันที่",
@@ -165,6 +166,15 @@ export function BookingHistoryPage() {
                         />
                       </>
                     )}
+                    {b.status === "APPROVED" && (
+                      <Button
+                        size="small"
+                        aria-label="เช็กอิน"
+                        icon={<CheckCircle size={14} />}
+                        loading={checkIn.isPending}
+                        onClick={() => checkIn.mutate(b.id)}
+                      />
+                    )}
                   </Space>
                 ),
               },
@@ -180,12 +190,14 @@ export function BookingHistoryPage() {
       >
         {selected && (
           <>
-            <BookingStatusTag status={selected.status} />
+            <BookingStatusTag status={bookingQuery.data?.status ?? selected.status} />
             <BookingSummary
-              draft={selected}
-              room={query.data?.rooms.find((r) => r.id === selected.roomId)}
+              draft={bookingQuery.data ?? selected}
+              room={bookingQuery.data?.room ?? selected.room}
             />
-            {selected.reason && <p>เหตุผล: {selected.reason}</p>}
+            {(bookingQuery.data?.reason ?? selected.reason) && (
+              <p>เหตุผล: {bookingQuery.data?.reason ?? selected.reason}</p>
+            )}
           </>
         )}
       </Modal>

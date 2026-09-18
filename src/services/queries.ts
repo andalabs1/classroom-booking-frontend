@@ -5,6 +5,7 @@ import {
   type ClassroomFilters,
   type ClassroomRange,
 } from "../api/classrooms";
+import { bookingsApi, type BookingFilters } from "../api/bookings";
 import { mockService } from "./mockService";
 export function useDatabase() {
   return useQuery({ queryKey: ["database"], queryFn: mockService.database });
@@ -40,6 +41,21 @@ export function useClassroomSchedule(range: ClassroomRange | undefined) {
     enabled: Boolean(range?.classroomIds?.length),
   });
 }
+
+export function useBookings(filters: BookingFilters = {}) {
+  return useQuery({
+    queryKey: ["bookings", filters],
+    queryFn: () => bookingsApi.list(filters),
+  });
+}
+
+export function useBooking(id: string | undefined) {
+  return useQuery({
+    queryKey: ["bookings", id],
+    queryFn: () => bookingsApi.get(id!),
+    enabled: Boolean(id),
+  });
+}
 export function useAction<T, R>(
   action: (value: T) => Promise<R>,
   success?: string,
@@ -51,6 +67,8 @@ export function useAction<T, R>(
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: ["database"] });
       void client.invalidateQueries({ queryKey: ["notifications"] });
+      void client.invalidateQueries({ queryKey: ["bookings"] });
+      void client.invalidateQueries({ queryKey: ["classrooms"] });
       if (success) void message.success(success);
     },
     onError: (error: Error) => {

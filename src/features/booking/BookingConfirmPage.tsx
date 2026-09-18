@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Alert, Button, Result, Space, Steps } from "antd";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useAction, useDatabase } from "../../services/queries";
-import { mockService } from "../../services/mockService";
-import { useAuth } from "../../stores/authStore";
+import { bookingsApi } from "../../api/bookings";
+import { useAction, useClassroom } from "../../services/queries";
 import type { Booking, BookingDraft } from "../../types";
 import { bookingSchema } from "../../schemas/bookingSchema";
 import { PageHeader, Panel, QueryState } from "../../components/common/Common";
@@ -22,15 +21,17 @@ function getDraft() {
 export function BookingConfirmPage() {
   const [draft] = useState(getDraft);
   const [created, setCreated] = useState<Booking>();
-  const query = useDatabase();
-  const user = useAuth((s) => s.user);
+  const roomQuery = useClassroom(draft?.roomId);
   const navigate = useNavigate();
   const mutation = useAction(
-    (value: BookingDraft) => mockService.book(value, user!.id),
+    (value: BookingDraft) =>
+      value.editingId
+        ? bookingsApi.update(value.editingId, value)
+        : bookingsApi.create(value),
     "จองห้องสำเร็จ",
   );
   if (!draft) return <Navigate to="/booking" replace />;
-  const room = query.data?.rooms.find((r) => r.id === draft.roomId);
+  const room = roomQuery.data;
   if (created)
     return (
       <Panel>
@@ -74,9 +75,9 @@ export function BookingConfirmPage() {
         ]}
       />
       <QueryState
-        isLoading={query.isLoading}
-        error={query.error}
-        retry={query.refetch}
+        isLoading={roomQuery.isLoading}
+        error={roomQuery.error}
+        retry={roomQuery.refetch}
       >
         <Panel>
           <BookingSummary draft={draft} room={room} />

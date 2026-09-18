@@ -75,7 +75,7 @@ function dataOrThrow<T>(response: ApiResponse<T>): T {
   return response.data;
 }
 
-function asRoom(room: ApiClassroom): Room {
+export function toRoom(room: ApiClassroom): Room {
   return {
     id: String(room.id),
     code: room.code ?? "-",
@@ -108,7 +108,7 @@ export const classroomsApi = {
       { params: filters },
     );
     return {
-      items: dataOrThrow(response.data).map(asRoom),
+      items: dataOrThrow(response.data).map(toRoom),
       total: response.data.meta?.total ?? 0,
     };
   },
@@ -125,7 +125,7 @@ export const classroomsApi = {
     return {
       ...data,
       rooms: data.rooms.map((room) => ({
-        ...asRoom(room),
+        ...toRoom(room),
         available: room.available,
         conflicts: room.conflicts,
       })),
@@ -144,7 +144,7 @@ export const classroomsApi = {
     return {
       ...data,
       rooms: data.rooms.map((room) => ({
-        ...asRoom(room),
+        ...toRoom(room),
         bookings: room.bookings.map((booking) => ({
           id: String(booking.id),
           classroomId: String(booking.classroomId),
@@ -163,7 +163,7 @@ export const classroomsApi = {
     const response = await axiosClient.get<ApiResponse<ApiClassroom>>(
       `/classrooms/${encodeURIComponent(id)}`,
     );
-    return asRoom(dataOrThrow(response.data));
+    return toRoom(dataOrThrow(response.data));
   },
 
   async availabilityForRoom(id: string, range: Omit<ClassroomRange, "classroomIds">) {

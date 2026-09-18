@@ -24,7 +24,13 @@ export type Room = {
   category: string;
 };
 export type BookingStatus =
-  "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "COMPLETED";
+  | "PENDING"
+  | "APPROVED"
+  | "IN_USE"
+  | "REJECTED"
+  | "CANCELLED"
+  | "COMPLETED"
+  | "NO_SHOW";
 export type BookingDraft = {
   roomId: string;
   date: string;
@@ -42,6 +48,7 @@ export type Booking = BookingDraft & {
   status: BookingStatus;
   createdAt: string;
   reason?: string;
+  room?: Room;
 };
 export type BookingNotification = {
   id: string;

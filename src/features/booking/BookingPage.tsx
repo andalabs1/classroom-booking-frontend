@@ -16,14 +16,14 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { useDatabase, useAction } from "../../services/queries";
-import { mockService } from "../../services/mockService";
+import { classroomsApi } from "../../api/classrooms";
+import { useClassrooms, useAction } from "../../services/queries";
 import { bookingSchema } from "../../schemas/bookingSchema";
 import type { BookingDraft } from "../../types";
 import { PageHeader, Panel, QueryState } from "../../components/common/Common";
 import styles from "./Booking.module.css";
 export function BookingPage() {
-  const query = useDatabase();
+  const query = useClassrooms({ limit: 100 });
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,8 +48,15 @@ export function BookingPage() {
     },
   });
   const roomId = useWatch({ control, name: "roomId" });
-  const room = query.data?.rooms.find((r) => r.id === roomId);
-  const check = useAction(mockService.check);
+  const room = query.data?.items.find((r) => r.id === roomId);
+  const check = useAction(async (draft: BookingDraft) => {
+    const availability = await classroomsApi.availabilityForRoom(draft.roomId, {
+      startAt: `${draft.date}T${draft.start}:00+07:00`,
+      endAt: `${draft.date}T${draft.end}:00+07:00`,
+    });
+    if (!availability.available)
+      throw new Error("ไม่สามารถจองได้ เนื่องจากช่วงเวลานี้มีผู้ใช้งานแล้ว");
+  });
   const submit = handleSubmit(async (draft) => {
     try {
       setError("");
@@ -105,7 +112,7 @@ export function BookingPage() {
                           field.onChange(v);
                           setValue("equipment", []);
                         }}
-                        options={query.data?.rooms.map((r) => ({
+                        options={query.data?.items.map((r) => ({
                           value: r.id,
                           label: `${r.code} · ${r.name} (${r.capacity} ที่นั่ง)`,
                           disabled: r.status !== "ACTIVE",
