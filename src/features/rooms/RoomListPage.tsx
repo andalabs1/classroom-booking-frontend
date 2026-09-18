@@ -18,13 +18,13 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
-import { useDatabase } from "../../services/queries";
+import { useClassrooms, useClassroomsAvailability } from "../../services/queries";
 import { PageHeader, QueryState } from "../../components/common/Common";
 import { RoomCard } from "./RoomCard";
 import { equipmentOptions } from "../../constants/bookingStatus";
 import styles from "./Rooms.module.css";
 export function RoomListPage() {
-  const query = useDatabase();
+  const query = useClassrooms({ limit: 100 });
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
@@ -38,18 +38,21 @@ export function RoomListPage() {
   const [view, setView] = useState("grid");
   const [sort, setSort] = useState("code");
   const [page, setPage] = useState(1);
-  const rooms = query.data?.rooms ?? [];
-  const bookings = query.data?.bookings ?? [];
+  const rooms = query.data?.items ?? [];
+  const now = dayjs();
+  const availabilityQuery = useClassroomsAvailability(
+    rooms.length
+      ? {
+          startAt: now.startOf("hour").toISOString(),
+          endAt: now.startOf("hour").add(1, "hour").toISOString(),
+          classroomIds: rooms.map((room) => room.id),
+        }
+      : undefined,
+  );
   const busyIds = new Set(
-    bookings
-      .filter(
-        (b) =>
-          b.date === dayjs().format("YYYY-MM-DD") &&
-          ["PENDING", "APPROVED"].includes(b.status) &&
-          b.start <= dayjs().format("HH:mm") &&
-          b.end > dayjs().format("HH:mm"),
-      )
-      .map((b) => b.roomId),
+    availabilityQuery.data?.rooms
+      .filter((room) => !room.available)
+      .map((room) => room.id),
   );
   const filtered = rooms
     .filter(
@@ -141,9 +144,12 @@ export function RoomListPage() {
         </div>
       </div>
       <QueryState
-        isLoading={query.isLoading}
-        error={query.error}
-        retry={query.refetch}
+        isLoading={query.isLoading || availabilityQuery.isLoading}
+        error={query.error ?? availabilityQuery.error}
+        retry={() => {
+          void query.refetch();
+          void availabilityQuery.refetch();
+        }}
       >
         <div className={styles.stats}>
           {[

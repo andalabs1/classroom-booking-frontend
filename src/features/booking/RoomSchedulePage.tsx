@@ -1,20 +1,59 @@
 import { useState } from "react";
-import { Button, DatePicker, Select } from "antd";
+import { App, Button, DatePicker, Select } from "antd";
 import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
 import dayjs from "dayjs";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useDatabase } from "../../services/queries";
+import { classroomsApi } from "../../api/classrooms";
+import { useClassrooms, useClassroomSchedule } from "../../services/queries";
 import { PageHeader, Panel, QueryState } from "../../components/common/Common";
 import { overlaps } from "../../utils/bookingRules";
 import { bookingLabels } from "../../constants/bookingStatus";
 import styles from "./Booking.module.css";
 export function RoomSchedulePage() {
   const [params] = useSearchParams();
-  const [roomId, setRoomId] = useState(params.get("room") || "room-1");
+  const [roomId, setRoomId] = useState(params.get("room") || "");
   const [date, setDate] = useState(dayjs());
-  const query = useDatabase();
+  const [checkingSlot, setCheckingSlot] = useState("");
+  const roomsQuery = useClassrooms({ limit: 100 });
   const navigate = useNavigate();
-  const room = query.data?.rooms.find((r) => r.id === roomId);
+  const { message } = App.useApp();
+  const rooms = roomsQuery.data?.items ?? [];
+  const selectedRoomId = roomId || rooms[0]?.id || "";
+  const scheduleQuery = useClassroomSchedule(
+    selectedRoomId
+      ? {
+          startAt: date.startOf("day").toISOString(),
+          endAt: date.endOf("day").toISOString(),
+          classroomIds: [selectedRoomId],
+        }
+      : undefined,
+  );
+  const room = rooms.find((item) => item.id === selectedRoomId);
+  const schedule = scheduleQuery.data?.rooms.find(
+    (item) => item.id === selectedRoomId,
+  );
+  const selectSlot = async (start: string, end: string) => {
+    const slotId = `${start}-${end}`;
+    setCheckingSlot(slotId);
+    try {
+      const result = await classroomsApi.availabilityForRoom(selectedRoomId, {
+        startAt: dayjs(`${date.format("YYYY-MM-DD")}T${start}`).toISOString(),
+        endAt: dayjs(`${date.format("YYYY-MM-DD")}T${end}`).toISOString(),
+      });
+      if (!result.available) {
+        void message.error("ช่วงเวลานี้มีผู้จองแล้ว กรุณาเลือกเวลาอื่น");
+        void scheduleQuery.refetch();
+        return;
+      }
+      navigate(
+        `/booking?room=${selectedRoomId}&date=${date.format("YYYY-MM-DD")}&start=${start}&end=${end}`,
+      );
+    } catch (error) {
+      void message.error((error as Error).message);
+    } finally {
+      setCheckingSlot("");
+    }
+  };
   return (
     <>
       <PageHeader
@@ -22,17 +61,20 @@ export function RoomSchedulePage() {
         subtitle="ตรวจสอบเวลาว่าง และเลือกช่วงเวลาที่ต้องการใช้งาน"
       />
       <QueryState
-        isLoading={query.isLoading}
-        error={query.error}
-        retry={query.refetch}
+        isLoading={roomsQuery.isLoading || scheduleQuery.isLoading}
+        error={roomsQuery.error ?? scheduleQuery.error}
+        retry={() => {
+          void roomsQuery.refetch();
+          void scheduleQuery.refetch();
+        }}
       >
         <Panel>
           <div className={styles.scheduleTools}>
             <Select
               aria-label="ห้องเรียน"
-              value={roomId}
+              value={selectedRoomId || undefined}
               onChange={setRoomId}
-              options={query.data?.rooms.map((r) => ({
+              options={rooms.map((r) => ({
                 value: r.id,
                 label: `${r.code} · ${r.name}`,
               }))}
@@ -79,14 +121,14 @@ export function RoomSchedulePage() {
           {Array.from({ length: 12 }, (_, i) => {
             const start = `${String(i + 8).padStart(2, "0")}:00`;
             const end = `${String(i + 9).padStart(2, "0")}:00`;
-            const booking = query.data?.bookings.find(
+            const booking = schedule?.bookings.find(
               (b) =>
-                b.roomId === roomId &&
-                b.date === date.format("YYYY-MM-DD") &&
-                (["PENDING", "APPROVED"].includes(b.status) ||
-                  (b.status === "COMPLETED" &&
-                    dayjs(`${b.date}T${b.end}`).isBefore(dayjs()))) &&
-                overlaps(start, end, b.start, b.end),
+                overlaps(
+                  start,
+                  end,
+                  dayjs(b.startAt).format("HH:mm"),
+                  dayjs(b.endAt).format("HH:mm"),
+                ),
             );
             const past = dayjs(
               `${date.format("YYYY-MM-DD")}T${start}`,
@@ -100,8 +142,8 @@ export function RoomSchedulePage() {
                   <div
                     className={`${styles.occupied} ${booking.status === "PENDING" ? styles.pending : ""}`}
                   >
-                    {bookingLabels[booking.status]} · {booking.start}–
-                    {booking.end}
+                    {bookingLabels[booking.status]} · {dayjs(booking.startAt).format("HH:mm")}–
+                    {dayjs(booking.endAt).format("HH:mm")}
                   </div>
                 ) : room?.status !== "ACTIVE" || past ? (
                   <div className={`${styles.occupied} ${styles.unavailable}`}>
@@ -109,13 +151,14 @@ export function RoomSchedulePage() {
                   </div>
                 ) : (
                   <button
-                    onClick={() =>
-                      navigate(
-                        `/booking?room=${roomId}&date=${date.format("YYYY-MM-DD")}&start=${start}&end=${end}`,
-                      )
-                    }
+                    disabled={checkingSlot === `${start}-${end}`}
+                    onClick={() => void selectSlot(start, end)}
                   >
-                    <span>ว่าง · จองช่วงเวลานี้</span>
+                    <span>
+                      {checkingSlot === `${start}-${end}`
+                        ? "กำลังตรวจสอบ..."
+                        : "ว่าง · จองช่วงเวลานี้"}
+                    </span>
                     <Plus size={16} />
                   </button>
                 )}

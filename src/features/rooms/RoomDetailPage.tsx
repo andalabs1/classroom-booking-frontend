@@ -2,15 +2,15 @@ import { RoomImage } from "../../components/common/RoomImage";
 import { Button, Result, Space } from "antd";
 import { CalendarDays, CalendarPlus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useDatabase } from "../../services/queries";
+import { useClassroom } from "../../services/queries";
 import { PageHeader, Panel, QueryState } from "../../components/common/Common";
 import { RoomStatusTag } from "../../components/data-display/StatusTags";
 import styles from "./Rooms.module.css";
 export function RoomDetailPage() {
   const { roomId } = useParams();
-  const query = useDatabase();
+  const query = useClassroom(roomId);
   const navigate = useNavigate();
-  const room = query.data?.rooms.find((r) => r.id === roomId);
+  const room = query.data;
   return (
     <QueryState
       isLoading={query.isLoading}
