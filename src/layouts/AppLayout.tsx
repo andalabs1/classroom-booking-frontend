@@ -76,19 +76,26 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
         {admin ? "ADMIN WORKSPACE" : "WORKSPACE"}
       </div>
       <nav className={styles.nav}>
-        {menus.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            aria-label={t(item.key)}
-            title={collapsed ? t(item.key) : undefined}
-            onClick={() => setDrawer(false)}
-            className={({ isActive }) => (isActive ? styles.active : "")}
-          >
-            <item.icon size={19} />
-            <span>{t(item.key)}</span>
-          </NavLink>
-        ))}
+        {menus.map((item) => {
+          const link = (
+            <NavLink
+              to={item.path}
+              aria-label={t(item.key)}
+              onClick={() => setDrawer(false)}
+              className={({ isActive }) => (isActive ? styles.active : "")}
+            >
+              <item.icon size={19} />
+              <span>{t(item.key)}</span>
+            </NavLink>
+          );
+          return collapsed ? (
+            <Tooltip key={item.path} title={t(item.key)} placement="right">
+              {link}
+            </Tooltip>
+          ) : (
+            <span key={item.path}>{link}</span>
+          );
+        })}
       </nav>
       <div className={styles.sidebarBottom}>
         <div className={styles.tip}>
