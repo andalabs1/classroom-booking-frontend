@@ -1,0 +1,84 @@
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(310px, 1fr);
+  gap: 24px;
+}
+
+.side {
+  min-width: 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+
+.sectionTitle {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+  color: var(--text-accent);
+}
+
+.sectionTitle h2,
+.identity h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 19px;
+}
+
+.sectionTitle p,
+.identity p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.identity {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.identity :global(.ant-tag) {
+  margin-top: 7px;
+}
+
+.avatar {
+  background: var(--purple-soft);
+  color: var(--text-accent);
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.active {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: var(--green);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions > button {
+    width: 100%;
+  }
+}

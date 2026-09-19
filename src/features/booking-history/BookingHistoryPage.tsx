@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { CheckCircle, Eye, Pencil, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { bookingsApi } from "../../api/bookings";
-import { useBooking, useBookings, useAction } from "../../services/queries";
+import { useBooking, useMyBookings, useAction } from "../../services/queries";
 import type { Booking } from "../../types";
 import { bookingLabels } from "../../constants/bookingStatus";
 import { canChangeBooking } from "../../utils/bookingRules";
@@ -18,7 +18,7 @@ import { BookingStatusTag } from "../../components/data-display/StatusTags";
 import { BookingSummary } from "../booking/BookingSummary";
 import styles from "../booking/Booking.module.css";
 export function BookingHistoryPage() {
-  const query = useBookings({ scope: "mine", limit: 100 });
+  const query = useMyBookings();
   const [status, setStatus] = useState<string>();
   const [roomId, setRoomId] = useState<string>();
   const [range, setRange] = useState<[string, string]>();

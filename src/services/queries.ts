@@ -10,6 +10,7 @@ import {
   notificationsApi,
   type NotificationFilters,
 } from "../api/notifications";
+import { usersApi } from "../api/users";
 import { mockService } from "./mockService";
 export function useDatabase() {
   return useQuery({ queryKey: ["database"], queryFn: mockService.database });
@@ -74,6 +75,25 @@ export function useUnreadNotificationCount() {
     queryFn: notificationsApi.unreadCount,
   });
 }
+
+export function useMyProfile() {
+  return useQuery({ queryKey: ["users", "me"], queryFn: usersApi.me });
+}
+
+export function useMyBookings() {
+  return useQuery({
+    queryKey: ["users", "me", "bookings"],
+    queryFn: () => usersApi.myBookings({ limit: 100 }),
+  });
+}
+
+export function useBusinessRules() {
+  return useQuery({
+    queryKey: ["config", "business-rules"],
+    queryFn: usersApi.businessRules,
+    staleTime: 5 * 60_000,
+  });
+}
 export function useAction<T, R>(
   action: (value: T) => Promise<R>,
   success?: string,
@@ -87,6 +107,7 @@ export function useAction<T, R>(
       void client.invalidateQueries({ queryKey: ["notifications"] });
       void client.invalidateQueries({ queryKey: ["bookings"] });
       void client.invalidateQueries({ queryKey: ["classrooms"] });
+      void client.invalidateQueries({ queryKey: ["users"] });
       if (success) void message.success(success);
     },
     onError: (error: Error) => {

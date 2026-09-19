@@ -14,6 +14,7 @@ import { RoomSchedulePage } from "../features/booking/RoomSchedulePage";
 import { BookingPage } from "../features/booking/BookingPage";
 import { BookingConfirmPage } from "../features/booking/BookingConfirmPage";
 import { BookingHistoryPage } from "../features/booking-history/BookingHistoryPage";
+import { ProfilePage } from "../features/profile/ProfilePage";
 import { PermissionGuard } from "../components/permission/PermissionGuard";
 import { ErrorPage } from "../pages/ErrorPage";
 const DashboardPage = lazy(() =>
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
           { path: "/booking", element: <BookingPage /> },
           { path: "/booking/confirm", element: <BookingConfirmPage /> },
           { path: "/booking-history", element: <BookingHistoryPage /> },
+          { path: "/profile", element: <ProfilePage /> },
         ],
       },
     ],

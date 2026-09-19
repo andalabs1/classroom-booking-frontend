@@ -20,6 +20,7 @@ import {
   PanelLeftClose,
   ShieldCheck,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { userMenuConfig } from "../config/userMenuConfig";
@@ -195,6 +196,12 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
               <Dropdown
                 menu={{
                   items: [
+                    {
+                      key: "profile",
+                      label: t("profile"),
+                      icon: <UserRound size={14} />,
+                      onClick: () => navigate("/profile"),
+                    },
                     {
                       key: "logout",
                       label: t("logout"),

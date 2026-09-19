@@ -3,6 +3,7 @@ import {
   CalendarDays,
   CalendarPlus,
   History,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 export type MenuItem = {
@@ -32,4 +33,5 @@ export const userMenuConfig: MenuItem[] = [
     path: "/booking-history",
     icon: History,
   },
+  { key: "profile", title: "โปรไฟล์ของฉัน", path: "/profile", icon: UserRound },
 ];

@@ -58,7 +58,7 @@ function toApiStatus(status: BookingStatus): ApiBookingStatus {
   return status === "APPROVED" ? "CONFIRMED" : status;
 }
 
-function toBooking(booking: ApiBooking): Booking {
+export function toBooking(booking: ApiBooking): Booking {
   return {
     id: String(booking.id),
     userId: String(booking.userId),

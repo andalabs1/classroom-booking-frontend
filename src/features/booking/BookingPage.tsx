@@ -16,14 +16,17 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { classroomsApi } from "../../api/classrooms";
-import { useClassrooms, useAction } from "../../services/queries";
+import { useBusinessRules, useClassrooms, useAction } from "../../services/queries";
 import { bookingSchema } from "../../schemas/bookingSchema";
 import type { BookingDraft } from "../../types";
 import { PageHeader, Panel, QueryState } from "../../components/common/Common";
 import styles from "./Booking.module.css";
 export function BookingPage() {
+  const { t } = useTranslation();
   const query = useClassrooms({ limit: 100 });
+  const rulesQuery = useBusinessRules();
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -288,7 +291,11 @@ export function BookingPage() {
                 type="info"
                 showIcon
                 title="ข้อควรทราบก่อนจอง"
-                description="จองได้เวลา 08:00–20:00 น. การจองต้องผ่านการอนุมัติจากเจ้าหน้าที่ กรุณารักษาความสะอาดและคืนอุปกรณ์หลังใช้งาน"
+                description={t("bookingRulesInfo", {
+                  open: rulesQuery.data?.bookingOpenTime ?? "08:00",
+                  close: rulesQuery.data?.bookingCloseTime ?? "20:00",
+                  days: rulesQuery.data?.bookingMaxAdvanceDays ?? 90,
+                })}
               />
             </Panel>
           </aside>
