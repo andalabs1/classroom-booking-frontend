@@ -1,7 +1,8 @@
 import { useDeferredValue, useState } from "react";
-import { App, Button, Descriptions, Form, Input, InputNumber, Modal, Select } from "antd";
+import { App, Button, Descriptions, Form, Image, Input, InputNumber, Modal, Select, Upload, type UploadProps } from "antd";
 import { Eye, Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { adminApi } from "../../api/admin";
+import { localImageKey, uploadsApi } from "../../api/uploads";
 import { useAction, useAdminClassroom, useAdminClassrooms } from "../../services/queries";
 import type { Room } from "../../types";
 import { equipmentOptions } from "../../constants/bookingStatus";
@@ -13,7 +14,32 @@ const emptyRoom: Room = { id: "", code: "", name: "", building: "", floor: 1, ca
 
 function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
   const [form] = Form.useForm<Room>();
+  const { message } = App.useApp();
+  const [uploading, setUploading] = useState(false);
+  const imageUrl = Form.useWatch("image", form);
   const save = useAction((values: Room) => room.id ? adminApi.updateClassroom(room.id, values) : adminApi.createClassroom(values), room.id ? "บันทึกห้องเรียนสำเร็จ" : "เพิ่มห้องเรียนสำเร็จ");
+  const removeImage = useAction(uploadsApi.deleteImage, "ลบรูปภาพแล้ว");
+  const beforeUpload: UploadProps["beforeUpload"] = (file) => {
+    const accepted = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!accepted.includes(file.type)) {
+      void message.error("รองรับเฉพาะ JPEG, PNG, WebP และ GIF");
+      return Upload.LIST_IGNORE;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      void message.error("รูปภาพต้องมีขนาดไม่เกิน 5 MB");
+      return Upload.LIST_IGNORE;
+    }
+    setUploading(true);
+    void uploadsApi
+      .uploadImage(file)
+      .then((image) => {
+        form.setFieldValue("image", image.url);
+        void message.success("อัปโหลดรูปภาพสำเร็จ");
+      })
+      .catch((error: Error) => void message.error(error.message))
+      .finally(() => setUploading(false));
+    return false;
+  };
   return (
     <Modal open title={room.id ? "แก้ไขห้องเรียน" : "เพิ่มห้องเรียน"} onCancel={onClose} footer={null} width={680}>
       <Form form={form} layout="vertical" initialValues={room} onFinish={(values) => save.mutate(values, { onSuccess: onClose })}>
@@ -27,7 +53,16 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
           <Form.Item label="สถานะ" name="status"><Select options={[{ value: "ACTIVE", label: "พร้อมใช้งาน" }, { value: "MAINTENANCE", label: "ปิดปรับปรุง" }, { value: "INACTIVE", label: "ไม่พร้อมใช้งาน" }]} /></Form.Item>
           <Form.Item label="อุปกรณ์" name="equipment"><Select mode="multiple" options={equipmentOptions.map((value) => ({ value, label: value }))} /></Form.Item>
           <Form.Item className={styles.full} label="รายละเอียด" name="description" rules={[{ required: true, message: "กรุณากรอกรายละเอียด" }]}><Input.TextArea rows={3} /></Form.Item>
-          <Form.Item className={styles.full} label="URL รูปภาพ" name="image" rules={[{ type: "url", message: "กรุณากรอก URL รูปภาพที่ถูกต้อง" }]}><Input placeholder="https://..." /></Form.Item>
+          <Form.Item className={styles.full} label="รูปภาพห้อง" name="image" rules={[{ type: "url", message: "กรุณากรอก URL รูปภาพที่ถูกต้อง" }]}>
+            <Input placeholder="วาง URL รูปภาพ หรืออัปโหลดไฟล์ด้านล่าง" />
+          </Form.Item>
+          <div className={`${styles.full} ${styles.imageActions}`}>
+            <Upload accept="image/jpeg,image/png,image/webp,image/gif" showUploadList={false} beforeUpload={beforeUpload}>
+              <Button loading={uploading}>อัปโหลดรูปภาพ</Button>
+            </Upload>
+            {imageUrl && imageUrl !== "/room-placeholder.svg" && <Image width={96} height={64} preview src={imageUrl} alt="ตัวอย่างรูปห้อง" className={styles.imagePreview} />}
+            {localImageKey(imageUrl) && <Button danger loading={removeImage.isPending} onClick={() => removeImage.mutate(localImageKey(imageUrl)!, { onSuccess: () => form.setFieldValue("image", "/room-placeholder.svg") })}>ลบรูปที่อัปโหลด</Button>}
+          </div>
         </div>
         <Button block type="primary" htmlType="submit" loading={save.isPending}>บันทึก</Button>
       </Form>

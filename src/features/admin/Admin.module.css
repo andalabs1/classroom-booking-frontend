@@ -56,6 +56,16 @@
 .formGrid .full {
   grid-column: 1/-1;
 }
+.imageActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -4px 0 20px;
+}
+.imagePreview img {
+  object-fit: cover;
+  border-radius: 6px;
+}
 .thumbnail {
   width: 46px;
   height: 35px;
