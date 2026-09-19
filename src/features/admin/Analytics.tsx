@@ -1,4 +1,5 @@
 import { theme } from "antd";
+import { useTranslation } from "react-i18next";
 import { useThemeStore } from "../../stores/themeStore";
 import ReactECharts from "echarts-for-react/esm/core";
 import * as echarts from "echarts/core";
@@ -21,7 +22,7 @@ echarts.use([
 import type { EChartsOption } from "echarts";
 import dayjs from "dayjs";
 import type { Booking, Room } from "../../types";
-import { bookingLabels } from "../../constants/bookingStatus";
+import { getBookingLabels } from "../../constants/bookingStatus";
 import { colors } from "../../config/themeConfig";
 import { Panel } from "../../components/common/Common";
 import styles from "./Admin.module.css";
@@ -38,6 +39,8 @@ export function Analytics({
   end: string;
   report?: boolean;
 }) {
+  const { t } = useTranslation();
+  const bookingLabels = getBookingLabels(t);
   const { token } = theme.useToken();
   const dark = useThemeStore((state) => state.mode === "dark");
   const days = Array.from(
@@ -186,7 +189,7 @@ export function Analytics({
     <>
       <div className={styles.charts}>
         <Panel>
-          <h2 className={styles.chartTitle}>จำนวนการจองตามช่วงเวลา</h2>
+          <h2 className={styles.chartTitle}>{t("adminTotalBookings")}</h2>
           <ReactECharts
             echarts={echarts}
             option={trend}
@@ -194,7 +197,7 @@ export function Analytics({
           />
         </Panel>
         <Panel>
-          <h2 className={styles.chartTitle}>สถานะการจอง</h2>
+          <h2 className={styles.chartTitle}>{t("adminStatus")}</h2>
           <ReactECharts
             echarts={echarts}
             option={donut}
@@ -204,7 +207,7 @@ export function Analytics({
       </div>
       <div className={report ? styles.charts : ""}>
         <Panel>
-          <h2 className={styles.chartTitle}>จำนวนการใช้งานแยกตามห้อง</h2>
+          <h2 className={styles.chartTitle}>{t("adminRoomUsage")}</h2>
           <ReactECharts
             echarts={echarts}
             option={bar}
@@ -214,7 +217,7 @@ export function Analytics({
         {report && (
           <Panel>
             <h2 className={styles.chartTitle}>
-              Top 10 ห้องที่ถูกใช้งานมากที่สุด
+              {t("adminMostBookedRoom")}
             </h2>
             <ReactECharts
               echarts={echarts}

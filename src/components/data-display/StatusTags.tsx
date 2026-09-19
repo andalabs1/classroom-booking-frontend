@@ -1,10 +1,12 @@
 import { Tag } from "antd";
+import { useTranslation } from "react-i18next";
 import type { BookingStatus, Room } from "../../types";
-import { bookingColors, bookingLabels } from "../../constants/bookingStatus";
+import { bookingColors, getBookingLabels } from "../../constants/bookingStatus";
 export function BookingStatusTag({ status }: { status: BookingStatus }) {
+  const { t } = useTranslation();
   return (
     <Tag color={bookingColors[status]} variant="filled">
-      {bookingLabels[status]}
+      {getBookingLabels(t)[status]}
     </Tag>
   );
 }
@@ -15,6 +17,7 @@ export function RoomStatusTag({
   status: Room["status"];
   busy?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <Tag
       variant="filled"
@@ -31,11 +34,11 @@ export function RoomStatusTag({
       ● &nbsp;
       {status === "ACTIVE"
         ? busy
-          ? "มีการใช้งาน"
-          : "ว่าง"
+          ? t("roomBusy")
+          : t("roomVacant")
         : status === "MAINTENANCE"
-          ? "ปิดปรับปรุง"
-          : "ไม่พร้อมใช้งาน"}
+          ? t("adminMaintenance")
+          : t("adminInactive")}
     </Tag>
   );
 }

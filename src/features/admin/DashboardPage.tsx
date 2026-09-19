@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   useAdminBookings,
   useAdminClassrooms,
@@ -14,6 +15,7 @@ import { Analytics } from "./Analytics";
 import styles from "./Admin.module.css";
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const summary = useAdminDashboard();
   const recent = useAdminRecentBookings();
@@ -36,9 +38,9 @@ export function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="Dashboard"
-        subtitle={`ภาพรวมการใช้ห้องเรียน · ย้อนหลัง 7 วัน และล่วงหน้า 7 วัน`}
-        action={<Button type="primary" onClick={() => navigate("/admin/bookings")}>จัดการการจอง</Button>}
+        title={t("dashboard")}
+        subtitle={t("adminDashboardSubtitle")}
+        action={<Button type="primary" onClick={() => navigate("/admin/bookings")}>{t("adminManageBookings")}</Button>}
       />
       <QueryState
         isLoading={isLoading}
@@ -52,10 +54,10 @@ export function DashboardPage() {
       >
         <div className={styles.metrics}>
           {[
-            { label: "จำนวนห้องเรียนทั้งหมด", value: summary.data?.classrooms },
-            { label: "จำนวนการจองวันนี้", value: summary.data?.todayBookings },
-            { label: "รายการรออนุมัติ", value: summary.data?.pending },
-            { label: "ผู้ใช้งานที่เปิดใช้งาน", value: summary.data?.activeUsers },
+            { label: t("adminTotalClassrooms"), value: summary.data?.classrooms },
+            { label: t("adminTodayBookings"), value: summary.data?.todayBookings },
+            { label: t("adminPendingBookings"), value: summary.data?.pending },
+            { label: t("adminActiveUsers"), value: summary.data?.activeUsers },
           ].map((metric) => (
             <div className={styles.metric} key={metric.label}>
               <span>{metric.label}</span><strong>{metric.value ?? 0}</strong>
@@ -69,17 +71,17 @@ export function DashboardPage() {
           end={chartEnd}
         />
         <Panel>
-          <h2>การจองล่าสุด</h2>
+          <h2>{t("adminRecentBookings")}</h2>
           <DataTable<AdminBooking>
             dataSource={recent.data ?? []}
             pagination={false}
             columns={[
-              { title: "Booking ID", dataIndex: "bookingCode" },
-              { title: "ผู้จอง", render: (_, booking) => booking.user?.name ?? "—" },
-              { title: "ห้อง", render: (_, booking) => booking.classroom?.code ?? "—" },
-              { title: "วันที่", dataIndex: "date" },
-              { title: "เวลา", render: (_, booking) => `${booking.start}–${booking.end}` },
-              { title: "สถานะ", render: (_, booking) => <BookingStatusTag status={booking.status} /> },
+              { title: t("adminBookingId"), dataIndex: "bookingCode" },
+              { title: t("adminBooker"), render: (_, booking) => booking.user?.name ?? "—" },
+              { title: t("adminRoom"), render: (_, booking) => booking.classroom?.code ?? "—" },
+              { title: t("adminDate"), dataIndex: "date" },
+              { title: t("adminTime"), render: (_, booking) => `${booking.start}–${booking.end}` },
+              { title: t("adminStatus"), render: (_, booking) => <BookingStatusTag status={booking.status} /> },
             ]}
           />
         </Panel>

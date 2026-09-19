@@ -15,23 +15,23 @@ export const adminMenuConfig: MenuItem[] = [
     icon: LayoutDashboard,
   },
   {
-    key: "rooms",
+    key: "adminRooms",
     title: "จัดการห้องเรียน",
     path: "/admin/rooms",
     icon: Building2,
   },
   {
-    key: "bookings",
+    key: "adminBookings",
     title: "จัดการการจอง",
     path: "/admin/bookings",
     icon: CalendarCheck,
   },
-  { key: "users", title: "จัดการผู้ใช้งาน", path: "/admin/users", icon: Users },
+  { key: "adminUsers", title: "จัดการผู้ใช้งาน", path: "/admin/users", icon: Users },
   {
-    key: "reports",
+    key: "adminReports",
     title: "รายงานและสถิติ",
     path: "/admin/reports",
     icon: ChartNoAxesCombined,
   },
-  { key: "audit", title: "บันทึกการดำเนินการ", path: "/admin/audit-logs", icon: ScrollText },
+  { key: "adminAudit", title: "บันทึกการดำเนินการ", path: "/admin/audit-logs", icon: ScrollText },
 ];

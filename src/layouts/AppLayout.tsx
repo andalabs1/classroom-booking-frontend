@@ -80,13 +80,13 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
           <NavLink
             key={item.path}
             to={item.path}
-            aria-label={admin ? item.title : t(item.key)}
-            title={collapsed ? (admin ? item.title : t(item.key)) : undefined}
+            aria-label={t(item.key)}
+            title={collapsed ? t(item.key) : undefined}
             onClick={() => setDrawer(false)}
             className={({ isActive }) => (isActive ? styles.active : "")}
           >
             <item.icon size={19} />
-            <span>{admin ? item.title : t(item.key)}</span>
+            <span>{t(item.key)}</span>
           </NavLink>
         ))}
       </nav>
@@ -172,7 +172,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
             <span>{admin ? "ผู้ดูแลระบบ" : "หน้าหลัก"}</span>
             <ChevronRight size={13} />
             <strong>
-              {active ? (admin ? active.title : t(active.key)) : "รายละเอียด"}
+              {active ? t(active.key) : t("details")}
             </strong>
           </div>
           <div className={styles.headerRight}>
