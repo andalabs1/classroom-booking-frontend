@@ -1,5 +1,5 @@
 import { useDeferredValue, useState } from "react";
-import { App, Button, Descriptions, Form, Image, Input, InputNumber, Modal, Select, Upload, type UploadProps } from "antd";
+import { App, Button, Descriptions, Form, Image, Input, InputNumber, Modal, Select, Tooltip, Upload, type UploadProps } from "antd";
 import { useTranslation } from "react-i18next";
 import { Eye, Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { adminApi } from "../../api/admin";
@@ -94,10 +94,10 @@ export function AdminRoomsPage() {
             { title: t("adminRoomCode"), dataIndex: "code" }, { title: t("adminRoomName"), dataIndex: "name" }, { title: t("adminBuilding"), dataIndex: "building" }, { title: t("adminFloor"), dataIndex: "floor" }, { title: t("adminCapacity"), dataIndex: "capacity" },
             { title: t("adminStatus"), render: (_, room) => <RoomStatusTag status={room.status} /> },
             { title: t("adminActions"), render: (_, room) => <div className={styles.actions}>
-              <Button size="small" aria-label={t("adminViewRoom")} icon={<Eye size={14} />} onClick={() => setDetailId(room.id)} />
-              <Button size="small" aria-label={t("adminEditRoomAction")} icon={<Pencil size={14} />} onClick={() => setEditing(room)} />
-              <Button size="small" aria-label={t("adminChangeRoomStatus")} icon={<Power size={14} />} onClick={() => status.mutate({ id: room.id, active: room.status === "ACTIVE" })} />
-              <Button size="small" danger aria-label={t("adminDeactivateRoom")} icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: t("adminDeactivateRoomConfirm"), content: room.code, okText: t("adminConfirm"), cancelText: t("adminBack"), okButtonProps: { danger: true }, onOk: () => remove.mutateAsync(room.id) })} />
+              <Tooltip title={t("adminViewRoom")}><Button size="small" aria-label={t("adminViewRoom")} icon={<Eye size={14} />} onClick={() => setDetailId(room.id)} /></Tooltip>
+              <Tooltip title={t("adminEditRoomAction")}><Button size="small" aria-label={t("adminEditRoomAction")} icon={<Pencil size={14} />} onClick={() => setEditing(room)} /></Tooltip>
+              <Tooltip title={t("adminChangeRoomStatus")}><Button size="small" aria-label={t("adminChangeRoomStatus")} icon={<Power size={14} />} onClick={() => status.mutate({ id: room.id, active: room.status === "ACTIVE" })} /></Tooltip>
+              <Tooltip title={t("adminDeactivateRoom")}><Button size="small" danger aria-label={t("adminDeactivateRoom")} icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: t("adminDeactivateRoomConfirm"), content: room.code, okText: t("adminConfirm"), cancelText: t("adminBack"), okButtonProps: { danger: true }, onOk: () => remove.mutateAsync(room.id) })} /></Tooltip>
             </div> },
           ]} />
         </Panel>

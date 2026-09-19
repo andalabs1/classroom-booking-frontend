@@ -1,5 +1,5 @@
 import { useDeferredValue, useState } from "react";
-import { App, Button, DatePicker, Form, Input, Modal, Select, Timeline } from "antd";
+import { App, Button, DatePicker, Form, Input, Modal, Select, Timeline, Tooltip } from "antd";
 import { useTranslation } from "react-i18next";
 import { CircleCheck, CircleX, Eye, Play, SquareCheckBig, UserX, X } from "lucide-react";
 import { adminApi, type AdminBooking } from "../../api/admin";
@@ -63,11 +63,11 @@ export function AdminBookingsPage() {
             { title: t("adminDate"), dataIndex: "date" }, { title: t("adminTime"), render: (_, booking) => `${booking.start}–${booking.end}` },
             { title: t("adminStatus"), render: (_, booking) => <BookingStatusTag status={booking.status} /> },
             { title: t("adminActions"), width: 250, render: (_, booking) => <div className={styles.actions}>
-              <Button size="small" aria-label={t("adminViewBooking")} icon={<Eye size={14} />} onClick={() => setDetailId(booking.id)} />
-              {booking.status === "PENDING" && <><Button size="small" aria-label={t("adminApprove")} icon={<CircleCheck size={14} />} onClick={() => confirm(booking, "approve")} /><Button size="small" danger aria-label={t("adminReject")} icon={<CircleX size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "reject" }); setNote(""); }} /></>}
-              {booking.status === "APPROVED" && <><Button size="small" aria-label={t("adminStart")} icon={<Play size={14} />} onClick={() => confirm(booking, "start")} /><Button size="small" aria-label={t("adminNoShow")} icon={<UserX size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "no-show" }); setNote(""); }} /></>}
-              {booking.status === "IN_USE" && <Button size="small" aria-label={t("adminComplete")} icon={<SquareCheckBig size={14} />} onClick={() => confirm(booking, "complete")} />}
-              {["PENDING", "APPROVED"].includes(booking.status) && <Button size="small" danger aria-label={t("adminCancel")} icon={<X size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "cancel" }); setNote(""); }} />}
+              <Tooltip title={t("adminViewBooking")}><Button size="small" aria-label={t("adminViewBooking")} icon={<Eye size={14} />} onClick={() => setDetailId(booking.id)} /></Tooltip>
+              {booking.status === "PENDING" && <><Tooltip title={t("adminApprove")}><Button size="small" aria-label={t("adminApprove")} icon={<CircleCheck size={14} />} onClick={() => confirm(booking, "approve")} /></Tooltip><Tooltip title={t("adminReject")}><Button size="small" danger aria-label={t("adminReject")} icon={<CircleX size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "reject" }); setNote(""); }} /></Tooltip></>}
+              {booking.status === "APPROVED" && <><Tooltip title={t("adminStart")}><Button size="small" aria-label={t("adminStart")} icon={<Play size={14} />} onClick={() => confirm(booking, "start")} /></Tooltip><Tooltip title={t("adminNoShow")}><Button size="small" aria-label={t("adminNoShow")} icon={<UserX size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "no-show" }); setNote(""); }} /></Tooltip></>}
+              {booking.status === "IN_USE" && <Tooltip title={t("adminComplete")}><Button size="small" aria-label={t("adminComplete")} icon={<SquareCheckBig size={14} />} onClick={() => confirm(booking, "complete")} /></Tooltip>}
+              {["PENDING", "APPROVED"].includes(booking.status) && <Tooltip title={t("adminCancel")}><Button size="small" danger aria-label={t("adminCancel")} icon={<X size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "cancel" }); setNote(""); }} /></Tooltip>}
             </div> },
           ]} />
         </Panel>

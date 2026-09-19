@@ -1,5 +1,5 @@
 import { useDeferredValue, useState } from "react";
-import { App, Button, Descriptions, Form, Input, Modal, Select, Tag } from "antd";
+import { App, Button, Descriptions, Form, Input, Modal, Select, Tag, Tooltip } from "antd";
 import { useTranslation } from "react-i18next";
 import { Eye, KeyRound, Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { adminApi, type AdminUser, type AdminUserInput } from "../../api/admin";
@@ -71,10 +71,10 @@ export function AdminUsersPage() {
             { title: "Role", dataIndex: "role", render: (role: Role) => <Tag color={role === "ADMIN" ? "purple" : "default"}>{role}</Tag> },
             { title: "Status", render: (_, user) => <Tag color={user.status === "ACTIVE" ? "green" : "red"}>{statusLabels[user.status]}</Tag> },
             { title: t("adminActions"), width: 190, render: (_, user) => <div className={styles.actions}>
-              <Button size="small" aria-label={t("adminViewUser")} icon={<Eye size={14} />} onClick={() => setDetailId(user.id)} />
-              <Button size="small" aria-label={t("adminEditUserAction")} icon={<Pencil size={14} />} onClick={() => setEditing(user)} />
-              <Button size="small" aria-label={t("adminChangeUserStatus")} icon={<Power size={14} />} onClick={() => status.mutate({ id: user.id, current: user.status })} />
-              <Button size="small" danger aria-label={t("adminDeactivateUser")} icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: t("adminDeactivateUserConfirm"), content: user.name, okText: t("adminConfirm"), cancelText: t("adminBack"), okButtonProps: { danger: true }, onOk: () => remove.mutateAsync(user.id) })} />
+              <Tooltip title={t("adminViewUser")}><Button size="small" aria-label={t("adminViewUser")} icon={<Eye size={14} />} onClick={() => setDetailId(user.id)} /></Tooltip>
+              <Tooltip title={t("adminEditUserAction")}><Button size="small" aria-label={t("adminEditUserAction")} icon={<Pencil size={14} />} onClick={() => setEditing(user)} /></Tooltip>
+              <Tooltip title={t("adminChangeUserStatus")}><Button size="small" aria-label={t("adminChangeUserStatus")} icon={<Power size={14} />} onClick={() => status.mutate({ id: user.id, current: user.status })} /></Tooltip>
+              <Tooltip title={t("adminDeactivateUser")}><Button size="small" danger aria-label={t("adminDeactivateUser")} icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: t("adminDeactivateUserConfirm"), content: user.name, okText: t("adminConfirm"), cancelText: t("adminBack"), okButtonProps: { danger: true }, onOk: () => remove.mutateAsync(user.id) })} /></Tooltip>
             </div> },
           ]} />
         </Panel>
