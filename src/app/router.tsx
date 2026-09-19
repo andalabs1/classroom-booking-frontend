@@ -42,6 +42,11 @@ const ReportsPage = lazy(() =>
     default: m.ReportsPage,
   })),
 );
+const AuditLogsPage = lazy(() =>
+  import("../features/admin/AuditLogsPage").then((m) => ({
+    default: m.AuditLogsPage,
+  })),
+);
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
@@ -85,6 +90,7 @@ const router = createBrowserRouter([
       { path: "bookings", element: <AdminBookingsPage /> },
       { path: "users", element: <AdminUsersPage /> },
       { path: "reports", element: <ReportsPage /> },
+      { path: "audit-logs", element: <AuditLogsPage /> },
     ],
   },
   { path: "/403", element: <ErrorPage code="403" /> },

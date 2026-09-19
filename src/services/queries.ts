@@ -11,6 +11,7 @@ import {
   type NotificationFilters,
 } from "../api/notifications";
 import { usersApi } from "../api/users";
+import { adminApi, type AdminFilters, type ReportFilters } from "../api/admin";
 import { mockService } from "./mockService";
 export function useDatabase() {
   return useQuery({ queryKey: ["database"], queryFn: mockService.database });
@@ -94,6 +95,57 @@ export function useBusinessRules() {
     staleTime: 5 * 60_000,
   });
 }
+
+export function useAdminDashboard() {
+  return useQuery({ queryKey: ["admin", "dashboard"], queryFn: adminApi.dashboardSummary });
+}
+
+export function useAdminRecentBookings() {
+  return useQuery({ queryKey: ["admin", "recent-bookings"], queryFn: () => adminApi.recentBookings(8) });
+}
+
+export function useAdminClassrooms(filters: AdminFilters = {}) {
+  return useQuery({ queryKey: ["admin", "classrooms", filters], queryFn: () => adminApi.classrooms(filters) });
+}
+
+export function useAdminClassroom(id: string | undefined) {
+  return useQuery({ queryKey: ["admin", "classrooms", id], queryFn: () => adminApi.classroom(id!), enabled: Boolean(id) });
+}
+
+export function useAdminBookings(filters: AdminFilters = {}) {
+  return useQuery({ queryKey: ["admin", "bookings", filters], queryFn: () => adminApi.bookings(filters) });
+}
+
+export function useAdminBooking(id: string | undefined) {
+  return useQuery({ queryKey: ["admin", "bookings", id], queryFn: () => adminApi.booking(id!), enabled: Boolean(id) });
+}
+
+export function useAdminUsers(filters: AdminFilters = {}) {
+  return useQuery({ queryKey: ["admin", "users", filters], queryFn: () => adminApi.users(filters) });
+}
+
+export function useAdminUser(id: string | undefined) {
+  return useQuery({ queryKey: ["admin", "users", id], queryFn: () => adminApi.user(id!), enabled: Boolean(id) });
+}
+
+export function useAdminReports(filters: ReportFilters = {}) {
+  return useQuery({
+    queryKey: ["admin", "reports", filters],
+    queryFn: async () => {
+      const [summary, bookings, classrooms, users] = await Promise.all([
+        adminApi.reportsSummary(),
+        adminApi.reportsBookings(filters),
+        adminApi.reportsClassrooms(filters),
+        adminApi.reportsUsers(filters),
+      ]);
+      return { summary, bookings, classrooms, users };
+    },
+  });
+}
+
+export function useAuditLogs(filters: AdminFilters = {}) {
+  return useQuery({ queryKey: ["admin", "audit-logs", filters], queryFn: () => adminApi.auditLogs(filters) });
+}
 export function useAction<T, R>(
   action: (value: T) => Promise<R>,
   success?: string,
@@ -108,6 +160,7 @@ export function useAction<T, R>(
       void client.invalidateQueries({ queryKey: ["bookings"] });
       void client.invalidateQueries({ queryKey: ["classrooms"] });
       void client.invalidateQueries({ queryKey: ["users"] });
+      void client.invalidateQueries({ queryKey: ["admin"] });
       if (success) void message.success(success);
     },
     onError: (error: Error) => {

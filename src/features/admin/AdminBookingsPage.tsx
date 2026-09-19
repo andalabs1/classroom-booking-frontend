@@ -1,233 +1,81 @@
-import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
-import { App, Button, DatePicker, Form, Input, Modal, Select } from "antd";
-import { Eye, CircleCheck, CircleX, X } from "lucide-react";
-import { useDatabase, useAction } from "../../services/queries";
-import { mockService } from "../../services/mockService";
-import { useAuth } from "../../stores/authStore";
-import type { Booking, BookingStatus } from "../../types";
+import { useDeferredValue, useState } from "react";
+import { App, Button, DatePicker, Form, Input, Modal, Select, Timeline } from "antd";
+import { CircleCheck, CircleX, Eye, Play, SquareCheckBig, UserX, X } from "lucide-react";
+import { adminApi, type AdminBooking } from "../../api/admin";
+import { useAction, useAdminBooking, useAdminBookings, useAdminClassrooms } from "../../services/queries";
 import { bookingLabels } from "../../constants/bookingStatus";
-import { canChangeBooking } from "../../utils/bookingRules";
-import {
-  DataTable,
-  PageHeader,
-  Panel,
-  QueryState,
-} from "../../components/common/Common";
+import type { BookingStatus } from "../../types";
+import { DataTable, PageHeader, Panel, QueryState } from "../../components/common/Common";
 import { BookingStatusTag } from "../../components/data-display/StatusTags";
-import { BookingSummary } from "../booking/BookingSummary";
 import styles from "./Admin.module.css";
+
+type NoteAction = "reject" | "cancel" | "no-show";
+
 export function AdminBookingsPage() {
-  const query = useDatabase();
-  const user = useAuth((s) => s.user)!;
   const { modal } = App.useApp();
   const [search, setSearch] = useState("");
-  const [room, setRoom] = useState<string>();
-  const [status, setStatus] = useState<string>();
+  const deferredSearch = useDeferredValue(search);
+  const [status, setStatus] = useState<BookingStatus>();
+  const [roomId, setRoomId] = useState<string>();
   const [range, setRange] = useState<[string, string]>();
-  const [selectedLocal, setSelected] = useState<Booking>();
-  const [params, setParams] = useSearchParams();
-  const selected =
-    selectedLocal ??
-    query.data?.bookings.find((b) => b.id === params.get("booking"));
-  const closeDetails = () => {
-    setSelected(undefined);
-    const next = new URLSearchParams(params);
-    next.delete("booking");
-    setParams(next, { replace: true });
-  };
-  const [reject, setReject] = useState<Booking>();
-  const [reason, setReason] = useState("");
-  const action = useAction(
-    (v: { id: string; status: BookingStatus; reason?: string }) =>
-      mockService.status(v.id, v.status, user.id, v.reason),
+  const [detailId, setDetailId] = useState<string>();
+  const [noteAction, setNoteAction] = useState<{ id: string; action: NoteAction }>();
+  const [note, setNote] = useState("");
+  const query = useAdminBookings({ search: deferredSearch || undefined, status, classroomId: roomId, startDate: range?.[0], endDate: range?.[1], limit: 100 });
+  const rooms = useAdminClassrooms({ limit: 100 });
+  const detail = useAdminBooking(detailId);
+  const change = useAction(
+    ({ id, action, note: value }: { id: string; action: "approve" | "reject" | "cancel" | "start" | "complete" | "no-show"; note?: string }) => {
+      switch (action) {
+        case "approve": return adminApi.approveBooking(id);
+        case "reject": return adminApi.rejectBooking(id, value ?? "");
+        case "cancel": return adminApi.cancelBooking(id, value ?? "");
+        case "start": return adminApi.startBooking(id);
+        case "complete": return adminApi.completeBooking(id);
+        case "no-show": return adminApi.noShowBooking(id, value);
+      }
+    },
     "อัปเดตสถานะการจองสำเร็จ",
   );
-  const rows = query.data?.bookings
-    .filter(
-      (b) =>
-        (!search ||
-          `${b.id} ${query.data?.users.find((u) => u.id === b.userId)?.firstName} ${query.data?.users.find((u) => u.id === b.userId)?.lastName}`
-            .toLowerCase()
-            .includes(search.toLowerCase())) &&
-        (!room || room === b.roomId) &&
-        (!status || status === b.status) &&
-        (!range || (b.date >= range[0] && b.date <= range[1])),
-    )
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const confirm = (b: Booking, next: BookingStatus) =>
-    modal.confirm({
-      title:
-        next === "APPROVED" ? "ยืนยันอนุมัติการจอง?" : "ยืนยันยกเลิกการจอง?",
-      content: `${b.id} · ${b.date} ${b.start}–${b.end}`,
-      okText: "ยืนยัน",
-      cancelText: "กลับ",
-      onOk: () => action.mutateAsync({ id: b.id, status: next }),
-    });
+  const confirm = (booking: AdminBooking, action: "approve" | "start" | "complete") => modal.confirm({
+    title: "ยืนยันการเปลี่ยนสถานะ?", content: `${booking.bookingCode} · ${booking.date} ${booking.start}–${booking.end}`,
+    okText: "ยืนยัน", cancelText: "กลับ", onOk: () => change.mutateAsync({ id: booking.id, action }),
+  });
+
   return (
     <>
-      <PageHeader
-        title="จัดการการจอง"
-        subtitle="ตรวจสอบคำขอ อนุมัติ และติดตามการใช้ห้องเรียน"
-      />
-      <QueryState
-        isLoading={query.isLoading}
-        error={query.error}
-        retry={query.refetch}
-      >
+      <PageHeader title="จัดการการจอง" subtitle="ตรวจสอบคำขอ อนุมัติ และติดตามการใช้ห้องเรียน" />
+      <QueryState isLoading={query.isLoading || rooms.isLoading} error={query.error ?? rooms.error} retry={() => { void query.refetch(); void rooms.refetch(); }}>
         <Panel>
           <div className={styles.filters}>
-            <Input
-              allowClear
-              placeholder="ค้นหาเลขที่การจอง / ผู้จอง"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Select
-              allowClear
-              placeholder="ทุกห้อง"
-              onChange={setRoom}
-              options={query.data?.rooms.map((r) => ({
-                value: r.id,
-                label: r.code,
-              }))}
-            />
-            <Select
-              allowClear
-              placeholder="ทุกสถานะ"
-              onChange={setStatus}
-              options={Object.entries(bookingLabels).map(([value, label]) => ({
-                value,
-                label,
-              }))}
-            />
-            <DatePicker.RangePicker
-              onChange={(v) =>
-                setRange(
-                  v?.[0] && v?.[1]
-                    ? [v[0].format("YYYY-MM-DD"), v[1].format("YYYY-MM-DD")]
-                    : undefined,
-                )
-              }
-            />
+            <Input allowClear placeholder="ค้นหารหัสการจอง ผู้จอง หรือห้อง" value={search} onChange={(event) => setSearch(event.target.value)} />
+            <Select allowClear placeholder="ทุกห้อง" value={roomId} onChange={setRoomId} options={rooms.data?.items.map((room) => ({ value: room.id, label: `${room.code} · ${room.name}` }))} />
+            <Select allowClear placeholder="ทุกสถานะ" value={status} onChange={setStatus} options={Object.entries(bookingLabels).map(([value, label]) => ({ value, label }))} />
+            <DatePicker.RangePicker onChange={(value) => setRange(value?.[0] && value?.[1] ? [value[0].format("YYYY-MM-DD"), value[1].format("YYYY-MM-DD")] : undefined)} />
           </div>
-          <DataTable<Booking>
-            dataSource={rows}
-            columns={[
-              { title: "Booking ID", dataIndex: "id", width: 220 },
-              {
-                title: "ผู้จอง",
-                render: (_, b) =>
-                  query.data?.users.find((u) => u.id === b.userId)?.firstName,
-              },
-              {
-                title: "ห้อง",
-                render: (_, b) =>
-                  query.data?.rooms.find((r) => r.id === b.roomId)?.code,
-              },
-              { title: "วันที่", dataIndex: "date" },
-              { title: "เวลา", render: (_, b) => `${b.start}–${b.end}` },
-              { title: "วัตถุประสงค์", dataIndex: "purpose", width: 160 },
-              {
-                title: "วันที่ทำรายการ",
-                render: (_, b) => b.createdAt.slice(0, 10),
-              },
-              {
-                title: "สถานะ",
-                render: (_, b) => <BookingStatusTag status={b.status} />,
-              },
-              {
-                title: "Actions",
-                width: 150,
-                render: (_, b) => (
-                  <div className={styles.actions}>
-                    <Button
-                      size="small"
-                      aria-label="ดูรายละเอียด"
-                      icon={<Eye size={14} />}
-                      onClick={() => setSelected(b)}
-                    />
-                    {b.status === "PENDING" && (
-                      <>
-                        <Button
-                          size="small"
-                          aria-label="อนุมัติ"
-                          icon={<CircleCheck size={14} />}
-                          onClick={() => confirm(b, "APPROVED")}
-                        />
-                        <Button
-                          size="small"
-                          danger
-                          aria-label="ปฏิเสธ"
-                          icon={<CircleX size={14} />}
-                          onClick={() => {
-                            setReject(b);
-                            setReason("");
-                          }}
-                        />
-                      </>
-                    )}
-                    {canChangeBooking(b) && (
-                      <Button
-                        size="small"
-                        danger
-                        aria-label="ยกเลิก"
-                        icon={<X size={14} />}
-                        onClick={() => confirm(b, "CANCELLED")}
-                      />
-                    )}
-                  </div>
-                ),
-              },
-            ]}
-          />
+          <DataTable<AdminBooking> dataSource={query.data?.items} columns={[
+            { title: "Booking ID", dataIndex: "bookingCode" },
+            { title: "ผู้จอง", render: (_, booking) => booking.user?.name ?? booking.userId },
+            { title: "ห้อง", render: (_, booking) => booking.classroom?.code ?? booking.roomId },
+            { title: "วันที่", dataIndex: "date" }, { title: "เวลา", render: (_, booking) => `${booking.start}–${booking.end}` },
+            { title: "สถานะ", render: (_, booking) => <BookingStatusTag status={booking.status} /> },
+            { title: "การดำเนินการ", width: 250, render: (_, booking) => <div className={styles.actions}>
+              <Button size="small" aria-label="ดูรายละเอียดการจอง" icon={<Eye size={14} />} onClick={() => setDetailId(booking.id)} />
+              {booking.status === "PENDING" && <><Button size="small" aria-label="อนุมัติ" icon={<CircleCheck size={14} />} onClick={() => confirm(booking, "approve")} /><Button size="small" danger aria-label="ปฏิเสธ" icon={<CircleX size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "reject" }); setNote(""); }} /></>}
+              {booking.status === "APPROVED" && <><Button size="small" aria-label="เริ่มใช้งาน" icon={<Play size={14} />} onClick={() => confirm(booking, "start")} /><Button size="small" aria-label="ไม่เข้าใช้งาน" icon={<UserX size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "no-show" }); setNote(""); }} /></>}
+              {booking.status === "IN_USE" && <Button size="small" aria-label="เสร็จสิ้น" icon={<SquareCheckBig size={14} />} onClick={() => confirm(booking, "complete")} />}
+              {["PENDING", "APPROVED"].includes(booking.status) && <Button size="small" danger aria-label="ยกเลิก" icon={<X size={14} />} onClick={() => { setNoteAction({ id: booking.id, action: "cancel" }); setNote(""); }} />}
+            </div> },
+          ]} />
         </Panel>
       </QueryState>
-      <Modal
-        title={selected?.id}
-        open={!!selected}
-        onCancel={closeDetails}
-        footer={<Button onClick={closeDetails}>ปิด</Button>}
-      >
-        {selected && (
-          <>
-            <BookingStatusTag status={selected.status} />
-            <BookingSummary
-              draft={selected}
-              room={query.data?.rooms.find((r) => r.id === selected.roomId)}
-            />
-            {selected.reason && <p>เหตุผล: {selected.reason}</p>}
-          </>
-        )}
+      <Modal open={Boolean(detailId)} title="รายละเอียดการจอง" onCancel={() => setDetailId(undefined)} footer={<Button onClick={() => setDetailId(undefined)}>ปิด</Button>}>
+        <QueryState isLoading={detail.isLoading} error={detail.error} retry={detail.refetch}>
+          {detail.data && <><p><strong>{detail.data.booking.bookingCode}</strong> · {detail.data.booking.user?.name ?? "—"}</p><BookingStatusTag status={detail.data.booking.status} /><Timeline items={detail.data.history.map((item) => ({ children: `${item.action} · ${item.user?.name ?? "ระบบ"} · ${item.createdAt.slice(0, 16)}` }))} /></>}
+        </QueryState>
       </Modal>
-      <Modal
-        title="ยืนยันปฏิเสธการจอง"
-        open={!!reject}
-        onCancel={() => setReject(undefined)}
-        okText="ยืนยันปฏิเสธ"
-        cancelText="กลับ"
-        okButtonProps={{
-          danger: true,
-          disabled: !reason.trim(),
-          loading: action.isPending,
-        }}
-        onOk={() =>
-          reject &&
-          action.mutate(
-            { id: reject.id, status: "REJECTED", reason },
-            { onSuccess: () => setReject(undefined) },
-          )
-        }
-      >
-        <p>{reject?.id}</p>
-        <Form.Item label="เหตุผลที่ไม่อนุมัติ" required>
-          <Input.TextArea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={3}
-            maxLength={500}
-          />
-        </Form.Item>
+      <Modal open={Boolean(noteAction)} title={noteAction?.action === "reject" ? "ปฏิเสธการจอง" : noteAction?.action === "cancel" ? "ยกเลิกการจอง" : "ระบุเหตุผลไม่เข้าใช้งาน"} onCancel={() => setNoteAction(undefined)} okText="ยืนยัน" cancelText="กลับ" okButtonProps={{ danger: noteAction?.action !== "no-show", disabled: !note.trim(), loading: change.isPending }} onOk={() => noteAction && change.mutate({ id: noteAction.id, action: noteAction.action, note }, { onSuccess: () => setNoteAction(undefined) })}>
+        <Form.Item label="เหตุผล" required><Input.TextArea value={note} onChange={(event) => setNote(event.target.value)} rows={3} maxLength={500} /></Form.Item>
       </Modal>
     </>
   );

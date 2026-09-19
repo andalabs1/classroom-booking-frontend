@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   Users,
   ChartNoAxesCombined,
+  ScrollText,
 } from "lucide-react";
 import type { MenuItem } from "./userMenuConfig";
 export const adminMenuConfig: MenuItem[] = [
@@ -32,4 +33,5 @@ export const adminMenuConfig: MenuItem[] = [
     path: "/admin/reports",
     icon: ChartNoAxesCombined,
   },
+  { key: "audit", title: "บันทึกการดำเนินการ", path: "/admin/audit-logs", icon: ScrollText },
 ];
