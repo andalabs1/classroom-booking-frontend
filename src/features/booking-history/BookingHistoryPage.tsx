@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { App, Button, DatePicker, Modal, Select, Space } from "antd";
+import { App, Button, DatePicker, Modal, Select, Space, Tooltip } from "antd";
 import dayjs from "dayjs";
 import { CheckCircle, Eye, Pencil, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -131,51 +131,59 @@ export function BookingHistoryPage() {
                 title: t("historyActions"),
                 render: (_, b) => (
                   <Space>
-                    <Button
-                      size="small"
-                      aria-label={t("historyView")}
-                      icon={<Eye size={14} />}
-                      onClick={() => setSelected(b)}
-                    />
+                    <Tooltip title={t("historyView")}>
+                      <Button
+                        size="small"
+                        aria-label={t("historyView")}
+                        icon={<Eye size={14} />}
+                        onClick={() => setSelected(b)}
+                      />
+                    </Tooltip>
                     {canChangeBooking(b) && (
                       <>
                         {b.status === "PENDING" && (
+                          <Tooltip title={t("historyEdit")}>
+                            <Button
+                              size="small"
+                              aria-label={t("historyEdit")}
+                              icon={<Pencil size={14} />}
+                              onClick={() =>
+                                navigate("/booking", {
+                                  state: { draft: { ...b, editingId: b.id } },
+                                })
+                              }
+                            />
+                          </Tooltip>
+                        )}
+                        <Tooltip title={t("historyCancel")}>
                           <Button
                             size="small"
-                            aria-label={t("historyEdit")}
-                            icon={<Pencil size={14} />}
+                            danger
+                            aria-label={t("historyCancel")}
+                            icon={<X size={14} />}
                             onClick={() =>
-                              navigate("/booking", {
-                                state: { draft: { ...b, editingId: b.id } },
+                              modal.confirm({
+                                title: t("historyCancelConfirm"),
+                                content: `${b.id} · ${b.date}`,
+                                okText: t("historyCancelOk"),
+                                cancelText: t("historyCancelBack"),
+                                onOk: () => cancel.mutateAsync(b.id),
                               })
                             }
                           />
-                        )}
-                        <Button
-                          size="small"
-                          danger
-                          aria-label={t("historyCancel")}
-                          icon={<X size={14} />}
-                          onClick={() =>
-                            modal.confirm({
-                              title: t("historyCancelConfirm"),
-                              content: `${b.id} · ${b.date}`,
-                              okText: t("historyCancelOk"),
-                              cancelText: t("historyCancelBack"),
-                              onOk: () => cancel.mutateAsync(b.id),
-                            })
-                          }
-                        />
+                        </Tooltip>
                       </>
                     )}
                     {b.status === "APPROVED" && (
-                      <Button
-                        size="small"
-                        aria-label={t("historyCheckin")}
-                        icon={<CheckCircle size={14} />}
-                        loading={checkIn.isPending}
-                        onClick={() => checkIn.mutate(b.id)}
-                      />
+                      <Tooltip title={t("historyCheckin")}>
+                        <Button
+                          size="small"
+                          aria-label={t("historyCheckin")}
+                          icon={<CheckCircle size={14} />}
+                          loading={checkIn.isPending}
+                          onClick={() => checkIn.mutate(b.id)}
+                        />
+                      </Tooltip>
                     )}
                   </Space>
                 ),
