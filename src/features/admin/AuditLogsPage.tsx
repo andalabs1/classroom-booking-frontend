@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { Input, Select } from "antd";
 import { useTranslation } from "react-i18next";
 import { useAuditLogs } from "../../services/queries";
@@ -7,11 +7,23 @@ import { DataTable, PageHeader, Panel, QueryState } from "../../components/commo
 import styles from "./Admin.module.css";
 
 export function AuditLogsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [action, setAction] = useState<string>();
   const [entity, setEntity] = useState<string>();
   const deferredAction = useDeferredValue(action);
   const deferredEntity = useDeferredValue(entity);
+  const dateFormatter = useMemo(
+    () => new Intl.DateTimeFormat(i18n.language.startsWith("th") ? "th-TH" : "en-GB", {
+      timeZone: "Asia/Bangkok",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }),
+    [i18n.language],
+  );
   const query = useAuditLogs({ action: deferredAction, entity: deferredEntity, limit: 100 });
   return (
     <>
@@ -23,7 +35,7 @@ export function AuditLogsPage() {
             <Select allowClear placeholder={t("adminAllEntities")} value={entity} onChange={setEntity} options={["BOOKING", "CLASSROOM", "USER"].map((value) => ({ value, label: value }))} />
           </div>
           <DataTable<AuditLog> dataSource={query.data?.items} columns={[
-            { title: t("adminLogTime"), render: (_, log) => log.createdAt.slice(0, 16).replace("T", " ") }, { title: t("adminActor"), render: (_, log) => log.user?.name ?? t("adminSystem") },
+            { title: t("adminLogTime"), render: (_, log) => dateFormatter.format(new Date(log.createdAt)) }, { title: t("adminActor"), render: (_, log) => log.user?.name ?? t("adminSystem") },
             { title: "Action", dataIndex: "action" }, { title: t("adminEntity"), dataIndex: "entity" }, { title: "ID", dataIndex: "entityId" },
           ]} />
         </Panel>
