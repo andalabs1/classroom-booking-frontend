@@ -24,7 +24,17 @@ type ApiBooking = {
   classroom?: ApiClassroom
 }
 
-type ApiMeta = { page?: number; limit?: number; total?: number }
+export type BookingCalendarView = 'daily' | 'weekly' | 'monthly'
+
+type ApiMeta = {
+  page?: number
+  limit?: number
+  total?: number
+  view?: BookingCalendarView
+  date?: string
+  startAt?: string
+  endAt?: string
+}
 type ApiListResponse<T> = ApiResponse<T> & { meta?: ApiMeta }
 
 export type BookingFilters = {
@@ -36,6 +46,8 @@ export type BookingFilters = {
   userId?: string
   page?: number
   limit?: number
+  view?: BookingCalendarView
+  date?: string
 }
 
 function dataOrThrow<T>(response: ApiResponse<T>): T {
@@ -93,6 +105,16 @@ export const bookingsApi = {
     return {
       items: dataOrThrow(response.data).map(toBooking),
       total: response.data.meta?.total ?? 0,
+      page: response.data.meta?.page ?? filters.page ?? 1,
+      limit: response.data.meta?.limit ?? filters.limit ?? 20,
+      calendar: response.data.meta?.view
+        ? {
+            view: response.data.meta.view,
+            date: response.data.meta.date ?? filters.date ?? '',
+            startAt: response.data.meta.startAt,
+            endAt: response.data.meta.endAt,
+          }
+        : undefined,
     }
   },
 

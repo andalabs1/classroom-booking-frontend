@@ -7,6 +7,7 @@ import {
   useAdminClassrooms,
   useAdminDashboard,
   useAdminRecentBookings,
+  useAdminReportSummary,
 } from "../../services/queries";
 import { DataTable, PageHeader, Panel, QueryState } from "../../components/common/Common";
 import { BookingStatusTag } from "../../components/data-display/StatusTags";
@@ -18,9 +19,10 @@ export function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const summary = useAdminDashboard();
+  const reportSummary = useAdminReportSummary();
   const recent = useAdminRecentBookings();
   const chartStart = dayjs().subtract(6, "day").format("YYYY-MM-DD");
-  const chartEnd = dayjs().add(7, "day").format("YYYY-MM-DD");
+  const chartEnd = dayjs().format("YYYY-MM-DD");
   const chartBookings = useAdminBookings({
     startDate: chartStart,
     endDate: chartEnd,
@@ -28,9 +30,10 @@ export function DashboardPage() {
   });
   const chartRooms = useAdminClassrooms({ limit: 100 });
   const error =
-    summary.error ?? recent.error ?? chartBookings.error ?? chartRooms.error;
+    summary.error ?? reportSummary.error ?? recent.error ?? chartBookings.error ?? chartRooms.error;
   const isLoading =
     summary.isLoading ||
+    reportSummary.isLoading ||
     recent.isLoading ||
     chartBookings.isLoading ||
     chartRooms.isLoading;
@@ -47,6 +50,7 @@ export function DashboardPage() {
         error={error}
         retry={() => {
           void summary.refetch();
+          void reportSummary.refetch();
           void recent.refetch();
           void chartBookings.refetch();
           void chartRooms.refetch();
@@ -67,8 +71,10 @@ export function DashboardPage() {
         <Analytics
           bookings={chartBookings.data?.items ?? []}
           rooms={chartRooms.data?.items ?? []}
-          start={chartStart}
-          end={chartEnd}
+          start={reportSummary.data?.bookingsGraph.startDate ?? chartStart}
+          end={reportSummary.data?.bookingsGraph.endDate ?? chartEnd}
+          trendData={reportSummary.data?.bookingsGraph.data}
+          statusData={reportSummary.data?.statusPie.data}
         />
         <Panel>
           <h2>{t("adminRecentBookings")}</h2>

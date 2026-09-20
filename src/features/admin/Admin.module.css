@@ -43,6 +43,14 @@
   min-width: 160px;
   flex: 1;
 }
+.liveStatus {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: -8px 0 16px;
+}
+.liveStatus :global(.ant-badge-status-dot) {
+  margin-inline-end: 7px;
+}
 .actions {
   display: flex;
   gap: 6px;

@@ -1,5 +1,5 @@
 import { useDeferredValue, useState } from "react";
-import { App, Button, DatePicker, Form, Input, Modal, Select, Timeline, Tooltip } from "antd";
+import { App, Badge, Button, DatePicker, Form, Input, Modal, Select, Timeline, Tooltip } from "antd";
 import { useTranslation } from "react-i18next";
 import { CircleCheck, CircleX, Eye, Play, SquareCheckBig, UserX, X } from "lucide-react";
 import { adminApi, type AdminBooking } from "../../api/admin";
@@ -24,7 +24,10 @@ export function AdminBookingsPage() {
   const [detailId, setDetailId] = useState<string>();
   const [noteAction, setNoteAction] = useState<{ id: string; action: NoteAction }>();
   const [note, setNote] = useState("");
-  const query = useAdminBookings({ search: deferredSearch || undefined, status, classroomId: roomId, startDate: range?.[0], endDate: range?.[1], limit: 100 });
+  const query = useAdminBookings(
+    { search: deferredSearch || undefined, status, classroomId: roomId, startDate: range?.[0], endDate: range?.[1], limit: 100 },
+    { live: true },
+  );
   const rooms = useAdminClassrooms({ limit: 100 });
   const detail = useAdminBooking(detailId);
   const change = useAction(
@@ -55,6 +58,10 @@ export function AdminBookingsPage() {
             <Select allowClear placeholder={t("adminAllRooms")} value={roomId} onChange={setRoomId} options={rooms.data?.items.map((room) => ({ value: room.id, label: `${room.code} · ${room.name}` }))} />
             <Select allowClear placeholder={t("adminAllStatuses")} value={status} onChange={setStatus} options={Object.entries(bookingLabels).map(([value, label]) => ({ value, label }))} />
             <DatePicker.RangePicker onChange={(value) => setRange(value?.[0] && value?.[1] ? [value[0].format("YYYY-MM-DD"), value[1].format("YYYY-MM-DD")] : undefined)} />
+          </div>
+          <div className={styles.liveStatus} aria-live="polite">
+            <Badge status={query.isFetching ? "processing" : "success"} />
+            {t("adminLiveUpdates")}
           </div>
           <DataTable<AdminBooking> dataSource={query.data?.items} columns={[
             { title: t("adminBookingId"), dataIndex: "bookingCode" },

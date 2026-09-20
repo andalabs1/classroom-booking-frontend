@@ -91,11 +91,28 @@ export type AuditLog = {
   user?: AdminUser | null
 }
 export type ReportFilters = Pick<AdminFilters, 'status' | 'classroomId' | 'userId' | 'startDate' | 'endDate'>
+  & {
+    userRole?: Role
+    building?: string
+    floor?: string
+    category?: string
+    search?: string
+  }
 export type ReportSummary = {
   users: number
   classrooms: number
   bookings: number
   byStatus: { status: string; _count: { _all: number } }[]
+  bookingsGraph: {
+    timezone: string
+    startDate: string
+    endDate: string
+    data: { date: string; count: number }[]
+  }
+  statusPie: {
+    total: number
+    data: { status: Booking['status']; count: number; percentage: number }[]
+  }
 }
 
 function dataOrThrow<T>(response: ApiResponse<T>): T {
@@ -130,6 +147,29 @@ function toAdminBooking(booking: ApiBooking): AdminBooking {
   }
 }
 
+function toApiBookingFilters<T extends { status?: string }>(filters: T) {
+  return filters.status === 'APPROVED'
+    ? { ...filters, status: 'CONFIRMED' }
+    : filters
+}
+
+function toReportSummary(summary: Omit<ReportSummary, 'statusPie'> & {
+  statusPie: Omit<ReportSummary['statusPie'], 'data'> & {
+    data: { status: string; count: number; percentage: number }[]
+  }
+}): ReportSummary {
+  return {
+    ...summary,
+    statusPie: {
+      ...summary.statusPie,
+      data: summary.statusPie.data.map((item) => ({
+        ...item,
+        status: item.status === 'CONFIRMED' ? 'APPROVED' : item.status as Booking['status'],
+      })),
+    },
+  }
+}
+
 function toAdminRoomInput(room: Room): AdminRoomInput {
   return {
     code: room.code,
@@ -147,7 +187,12 @@ function toAdminRoomInput(room: Room): AdminRoomInput {
 
 async function list<T>(path: string, params?: object) {
   const response = await axiosClient.get<ApiListResponse<T[]>>(path, { params })
-  return { items: dataOrThrow(response.data), total: response.data.meta?.total ?? 0 }
+  return {
+    items: dataOrThrow(response.data),
+    total: response.data.meta?.total ?? 0,
+    page: response.data.meta?.page ?? 1,
+    limit: response.data.meta?.limit ?? 20,
+  }
 }
 
 export const adminApi = {
@@ -197,7 +242,7 @@ export const adminApi = {
   },
 
   async bookings(filters: AdminFilters = {}) {
-    const result = await list<ApiBooking>('/admin/bookings', filters)
+    const result = await list<ApiBooking>('/admin/bookings', toApiBookingFilters(filters))
     return { ...result, items: result.items.map(toAdminBooking) }
   },
 
@@ -269,13 +314,13 @@ export const adminApi = {
 
   async reportsSummary() {
     const response = await axiosClient.get<ApiResponse<ReportSummary>>('/admin/reports/summary')
-    return dataOrThrow(response.data)
+    return toReportSummary(dataOrThrow(response.data))
   },
 
   async reportsBookings(filters: ReportFilters = {}) {
     const response = await axiosClient.get<ApiResponse<{ total: number; byStatus: ReportSummary['byStatus']; rows: ApiBooking[] }>>(
       '/admin/reports/bookings',
-      { params: filters },
+      { params: toApiBookingFilters(filters) },
     )
     const data = dataOrThrow(response.data)
     return { ...data, rows: data.rows.map(toAdminBooking) }
@@ -284,19 +329,19 @@ export const adminApi = {
   async reportsClassrooms(filters: ReportFilters = {}) {
     const response = await axiosClient.get<ApiResponse<{ classroom: ApiRoom; bookingCount: number; totalHours: number }[]>>(
       '/admin/reports/classrooms',
-      { params: filters },
+      { params: toApiBookingFilters(filters) },
     )
     return dataOrThrow(response.data).map((item) => ({ ...item, classroom: toRoom(item.classroom) }))
   },
 
   async reportsUsers(filters: ReportFilters = {}) {
-    const response = await axiosClient.get<ApiResponse<{ user: ApiUser | null; bookingCount: number }[]>>('/admin/reports/users', { params: filters })
+    const response = await axiosClient.get<ApiResponse<{ user: ApiUser | null; bookingCount: number }[]>>('/admin/reports/users', { params: toApiBookingFilters(filters) })
     return dataOrThrow(response.data).map((item) => ({ ...item, user: item.user ? toUser(item.user) : null }))
   },
 
   async exportBookings(filters: ReportFilters = {}) {
     const response = await axiosClient.get('/admin/reports/export', {
-      params: filters,
+      params: toApiBookingFilters(filters),
       responseType: 'blob',
     })
     return response.data as Blob

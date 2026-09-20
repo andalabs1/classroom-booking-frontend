@@ -105,6 +105,8 @@ export const classroomsApi = {
     return {
       items: dataOrThrow(response.data).map(toRoom),
       total: response.data.meta?.total ?? 0,
+      page: response.data.meta?.page ?? filters.page ?? 1,
+      limit: response.data.meta?.limit ?? filters.limit ?? 20,
     }
   },
 

@@ -23,6 +23,7 @@ echarts.use([
 import type { EChartsOption } from "echarts";
 import dayjs from "dayjs";
 import type { Booking, Room } from "../../types";
+import type { ReportSummary } from "../../api/admin";
 import { getBookingLabels } from "../../constants/bookingStatus";
 import { colors } from "../../config/themeConfig";
 import { Panel } from "../../components/common/Common";
@@ -35,6 +36,7 @@ function getTimeline(
   start: string,
   end: string,
   granularity: AnalyticsGranularity,
+  trendData?: ReportSummary["bookingsGraph"]["data"],
 ) {
   const unit = granularity === "day" ? "day" : granularity;
   const first = dayjs(start).startOf(unit);
@@ -45,9 +47,10 @@ function getTimeline(
     totals.set(cursor.format("YYYY-MM-DD"), 0);
   }
 
-  for (const booking of bookings) {
-    const bucket = dayjs(booking.date).startOf(unit).format("YYYY-MM-DD");
-    if (totals.has(bucket)) totals.set(bucket, (totals.get(bucket) ?? 0) + 1);
+  for (const item of trendData ?? bookings) {
+    const bucket = dayjs(item.date).startOf(unit).format("YYYY-MM-DD");
+    const value = "count" in item ? item.count : 1;
+    if (totals.has(bucket)) totals.set(bucket, (totals.get(bucket) ?? 0) + value);
   }
 
   return [...totals.entries()].map(([key, value]) => {
@@ -68,12 +71,16 @@ export function Analytics({
   start,
   end,
   report = false,
+  trendData,
+  statusData,
 }: {
   bookings: Booking[];
   rooms: Room[];
   start: string;
   end: string;
   report?: boolean;
+  trendData?: ReportSummary["bookingsGraph"]["data"];
+  statusData?: ReportSummary["statusPie"]["data"];
 }) {
   const { t } = useTranslation();
   const [granularity, setGranularity] = useState<AnalyticsGranularity>("day");
@@ -81,8 +88,8 @@ export function Analytics({
   const { token } = theme.useToken();
   const dark = useThemeStore((state) => state.mode === "dark");
   const timeline = useMemo(
-    () => getTimeline(bookings, start, end, granularity),
-    [bookings, end, granularity, start],
+    () => getTimeline(bookings, start, end, granularity, trendData),
+    [bookings, end, granularity, start, trendData],
   );
   const top = rooms
     .map((r) => ({
@@ -158,7 +165,8 @@ export function Analytics({
         label: { show: false },
         data: Object.entries(bookingLabels).map(([status, name]) => ({
           name,
-          value: bookings.filter((b) => b.status === status).length,
+          value: statusData?.find((item) => item.status === status)?.count
+            ?? bookings.filter((b) => b.status === status).length,
         })),
         itemStyle: {
           borderColor: token.colorBgContainer,

@@ -100,6 +100,10 @@ export function useAdminDashboard() {
   return useQuery({ queryKey: ["admin", "dashboard"], queryFn: adminApi.dashboardSummary });
 }
 
+export function useAdminReportSummary() {
+  return useQuery({ queryKey: ["admin", "reports", "summary"], queryFn: adminApi.reportsSummary });
+}
+
 export function useAdminRecentBookings() {
   return useQuery({ queryKey: ["admin", "recent-bookings"], queryFn: () => adminApi.recentBookings(8) });
 }
@@ -112,8 +116,16 @@ export function useAdminClassroom(id: string | undefined) {
   return useQuery({ queryKey: ["admin", "classrooms", id], queryFn: () => adminApi.classroom(id!), enabled: Boolean(id) });
 }
 
-export function useAdminBookings(filters: AdminFilters = {}) {
-  return useQuery({ queryKey: ["admin", "bookings", filters], queryFn: () => adminApi.bookings(filters) });
+export function useAdminBookings(
+  filters: AdminFilters = {},
+  options: { live?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: ["admin", "bookings", filters],
+    queryFn: () => adminApi.bookings(filters),
+    refetchInterval: options.live ? 10_000 : false,
+    refetchIntervalInBackground: false,
+  });
 }
 
 export function useAdminBooking(id: string | undefined) {
