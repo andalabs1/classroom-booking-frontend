@@ -1,4 +1,3 @@
-import { fieldLabels } from "../../config/fieldLabels";
 import { RoomImage } from "../../components/common/RoomImage";
 import { useState } from "react";
 import {
@@ -19,9 +18,10 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { classroomsApi } from "../../api/classrooms";
 import { useBusinessRules, useClassrooms, useAction } from "../../services/queries";
-import { bookingSchema } from "../../schemas/bookingSchema";
+import { createBookingSchema } from "../../schemas/bookingSchema";
 import type { BookingDraft } from "../../types";
 import { PageHeader, Panel, QueryState } from "../../components/common/Common";
+import { getEquipmentLabel } from "../../constants/bookingStatus";
 import styles from "./Booking.module.css";
 export function BookingPage() {
   const { t } = useTranslation();
@@ -38,7 +38,7 @@ export function BookingPage() {
     setValue,
     formState: { errors },
   } = useForm<BookingDraft>({
-    resolver: zodResolver(bookingSchema),
+    resolver: zodResolver(createBookingSchema(t)),
     defaultValues: initial ?? {
       roomId: params.get("room") || "",
       date: params.get("date") || dayjs().add(1, "day").format("YYYY-MM-DD"),
@@ -58,7 +58,7 @@ export function BookingPage() {
       endAt: `${draft.date}T${draft.end}:00+07:00`,
     });
     if (!availability.available)
-      throw new Error("ไม่สามารถจองได้ เนื่องจากช่วงเวลานี้มีผู้ใช้งานแล้ว");
+      throw new Error(t("bookingAvailabilityError"));
   });
   const submit = handleSubmit(async (draft) => {
     try {
@@ -73,16 +73,16 @@ export function BookingPage() {
   return (
     <>
       <PageHeader
-        title={initial?.editingId ? "แก้ไขการจอง" : "จองห้องเรียน"}
-        subtitle="ระบุรายละเอียดการใช้งาน และตรวจสอบข้อมูลก่อนยืนยัน"
+        title={initial?.editingId ? t("bookingEditTitle") : t("bookingCreateTitle")}
+        subtitle={t("bookingCreateSubtitle")}
       />
       <Steps
         className={styles.steps}
         current={0}
         items={[
-          { title: "ข้อมูลการจอง" },
-          { title: "ตรวจสอบและยืนยัน" },
-          { title: "จองสำเร็จ" },
+          { title: t("bookingStepDetails") },
+          { title: t("bookingStepConfirm") },
+          { title: t("bookingStepCompleted") },
         ]}
       />
       <QueryState
@@ -92,13 +92,13 @@ export function BookingPage() {
       >
         <div className={styles.layout}>
           <Panel>
-            <h2>ข้อมูลการจอง</h2>
+            <h2>{t("bookingFormTitle")}</h2>
             {error && <Alert type="error" showIcon title={error} />}
             <Form layout="vertical" onFinish={submit}>
               <div className={styles.formGrid}>
                 <Form.Item
                   className={styles.full}
-                  label="ห้องเรียน"
+                  label={t("bookingSummaryRoom")}
                   required
                   validateStatus={errors.roomId ? "error" : ""}
                   help={errors.roomId?.message}
@@ -109,15 +109,15 @@ export function BookingPage() {
                     render={({ field }) => (
                       <Select
                         {...field}
-                        aria-label={fieldLabels[field.name] ?? field.name}
-                        placeholder="เลือกห้องเรียน"
+                        aria-label={t("bookingSummaryRoom")}
+                        placeholder={t("bookingSelectRoom")}
                         onChange={(v) => {
                           field.onChange(v);
                           setValue("equipment", []);
                         }}
                         options={query.data?.items.map((r) => ({
                           value: r.id,
-                          label: `${r.code} · ${r.name} (${r.capacity} ที่นั่ง)`,
+                          label: `${r.code} · ${r.name} (${t("bookingCapacity", { count: r.capacity })})`,
                           disabled: r.status !== "ACTIVE",
                         }))}
                       />
@@ -125,7 +125,7 @@ export function BookingPage() {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="วันที่ใช้งาน"
+                  label={t("bookingDate")}
                   required
                   validateStatus={errors.date ? "error" : ""}
                   help={errors.date?.message}
@@ -147,7 +147,7 @@ export function BookingPage() {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="จำนวนผู้ใช้งาน"
+                  label={t("bookingAttendees")}
                   required
                   validateStatus={errors.attendees ? "error" : ""}
                   help={errors.attendees?.message}
@@ -158,12 +158,12 @@ export function BookingPage() {
                     render={({ field }) => (
                       <InputNumber
                         {...field}
-                        aria-label={fieldLabels[field.name] ?? field.name}
+                        aria-label={t("bookingAttendees")}
                         onChange={(v) => field.onChange(v ?? 0)}
                         min={1}
                         max={room?.capacity}
                         style={{ width: "100%" }}
-                        suffix="คน"
+                        suffix={t("bookingPeopleSuffix")}
                       />
                     )}
                   />
@@ -171,7 +171,7 @@ export function BookingPage() {
                 {(["start", "end"] as const).map((name, i) => (
                   <Form.Item
                     key={name}
-                    label={i ? "เวลาสิ้นสุด" : "เวลาเริ่มต้น"}
+                    label={i ? t("bookingEnd") : t("bookingStart")}
                     required
                     validateStatus={errors[name] ? "error" : ""}
                     help={errors[name]?.message}
@@ -200,7 +200,7 @@ export function BookingPage() {
                 ))}
                 <Form.Item
                   className={styles.full}
-                  label="วัตถุประสงค์การใช้งาน"
+                  label={t("bookingPurpose")}
                   required
                   validateStatus={errors.purpose ? "error" : ""}
                   help={errors.purpose?.message}
@@ -211,57 +211,57 @@ export function BookingPage() {
                     render={({ field }) => (
                       <Input.TextArea
                         {...field}
-                        aria-label={fieldLabels[field.name] ?? field.name}
+                        aria-label={t("bookingPurpose")}
                         rows={3}
-                        placeholder="เช่น ประชุมกลุ่มโครงงาน หรือนำเสนอผลงาน"
+                        placeholder={t("bookingPurposePlaceholder")}
                         maxLength={500}
                         showCount
                       />
                     )}
                   />
                 </Form.Item>
-                <Form.Item className={styles.full} label="อุปกรณ์ที่ต้องการ">
+                <Form.Item className={styles.full} label={t("bookingEquipment")}>
                   <Controller
                     control={control}
                     name="equipment"
                     render={({ field }) => (
                       <Select
                         {...field}
-                        aria-label={fieldLabels[field.name] ?? field.name}
+                        aria-label={t("bookingEquipment")}
                         mode="multiple"
-                        placeholder="เลือกอุปกรณ์"
+                        placeholder={t("bookingSelectEquipment")}
                         options={room?.equipment.map((value) => ({
                           value,
-                          label: value,
+                          label: getEquipmentLabel(t, value),
                         }))}
                       />
                     )}
                   />
                 </Form.Item>
-                <Form.Item className={styles.full} label="หมายเหตุ">
+                <Form.Item className={styles.full} label={t("bookingNote")}>
                   <Controller
                     control={control}
                     name="note"
                     render={({ field }) => (
                       <Input.TextArea
                         {...field}
-                        aria-label={fieldLabels[field.name] ?? field.name}
+                        aria-label={t("bookingNote")}
                         rows={2}
                         maxLength={500}
-                        placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)"
+                        placeholder={t("bookingNotePlaceholder")}
                       />
                     )}
                   />
                 </Form.Item>
               </div>
               <div className={styles.actions}>
-                <Button onClick={() => navigate("/rooms")}>ยกเลิก</Button>
+                <Button onClick={() => navigate("/rooms")}>{t("bookingCancel")}</Button>
                 <Button
                   type="primary"
                   htmlType="submit"
                   loading={check.isPending}
                 >
-                  ตรวจสอบข้อมูลการจอง
+                  {t("bookingReview")}
                 </Button>
               </div>
             </Form>
@@ -279,18 +279,18 @@ export function BookingPage() {
                     {room.name} {room.code}
                   </h2>
                   <p className={styles.hint}>
-                    {room.building} · ชั้น {room.floor}
+                    {t("roomScheduleBuildingFloor", { building: room.building, floor: room.floor, capacity: room.capacity })}
                     <br />
-                    รองรับผู้ใช้งาน {room.capacity} คน
+                    {t("bookingCapacity", { count: room.capacity })}
                   </p>
                 </>
               ) : (
-                <h2>เลือกพื้นที่การเรียนรู้ของคุณ</h2>
+                <h2>{t("bookingRoomPreview")}</h2>
               )}
               <Alert
                 type="info"
                 showIcon
-                title="ข้อควรทราบก่อนจอง"
+                title={t("bookingRulesTitle")}
                 description={t("bookingRulesInfo", {
                   open: rulesQuery.data?.bookingOpenTime ?? "08:00",
                   close: rulesQuery.data?.bookingCloseTime ?? "20:00",

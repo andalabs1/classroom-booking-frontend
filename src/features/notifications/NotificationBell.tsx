@@ -11,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import { notificationsApi } from "../../api/notifications";
 import {
@@ -23,6 +24,7 @@ import type { BookingNotification, User } from "../../types";
 import styles from "./Notifications.module.css";
 
 export function NotificationBell({ user }: { user: User }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("all");
   const navigate = useNavigate();
@@ -56,7 +58,7 @@ export function NotificationBell({ user }: { user: User }) {
   };
   return (
     <>
-      <Tooltip title="การแจ้งเตือน">
+      <Tooltip title={t("notifications")}>
         <Badge
           className={unread ? styles.badgeActive : ""}
           count={unread}
@@ -67,14 +69,16 @@ export function NotificationBell({ user }: { user: User }) {
             className={unread ? styles.bellActive : ""}
             type="text"
             icon={<Bell size={19} />}
-            aria-label={`การแจ้งเตือน${unread ? ` ยังไม่อ่าน ${unread} รายการ` : ""}`}
+            aria-label={t("notificationsAria", {
+              suffix: unread ? t("notificationsUnreadSuffix", { count: unread }) : "",
+            })}
             aria-expanded={open}
             onClick={() => setOpen(true)}
           />
         </Badge>
       </Tooltip>
       <Drawer
-        title="การแจ้งเตือน"
+        title={t("notifications")}
         open={open}
         onClose={() => setOpen(false)}
         size={420}
@@ -85,8 +89,8 @@ export function NotificationBell({ user }: { user: User }) {
             value={filter}
             onChange={setFilter}
             options={[
-              { value: "all", label: "ทั้งหมด" },
-              { value: "unread", label: `ยังไม่อ่าน (${unread})` },
+              { value: "all", label: t("notificationsAll") },
+              { value: "unread", label: t("notificationsUnread", { count: unread }) },
             ]}
           />
           <Button
@@ -97,7 +101,7 @@ export function NotificationBell({ user }: { user: User }) {
             loading={read.isPending}
             onClick={() => read.mutate(undefined)}
           >
-            อ่านทั้งหมด
+            {t("notificationsReadAll")}
           </Button>
         </div>
         <QueryState
@@ -128,13 +132,13 @@ export function NotificationBell({ user }: { user: User }) {
                         {!item.readAt && (
                           <span
                             className={styles.dot}
-                            aria-label="ยังไม่อ่าน"
+                            aria-label={t("notificationsMarkUnread")}
                           />
                         )}
                       </strong>
                       <span>{item.message}</span>
                       <small>
-                        {item.bookingId ?? "แจ้งเตือนระบบ"} ·{" "}
+                        {item.bookingId ?? t("notificationSystem")} ·{" "}
                         {dayjs(item.createdAt).format("DD MMM YYYY HH:mm")}
                       </small>
                     </span>
@@ -148,11 +152,11 @@ export function NotificationBell({ user }: { user: User }) {
               <Empty
                 description={
                   filter === "unread"
-                    ? "อ่านการแจ้งเตือนครบแล้ว"
-                    : "ยังไม่มีการแจ้งเตือน"
+                    ? t("notificationsAllRead")
+                    : t("notificationsEmpty")
                 }
               />
-              <p>ข่าวเกี่ยวกับการจองของคุณจะแสดงที่นี่</p>
+              <p>{t("notificationsEmptyDescription")}</p>
             </div>
           )}
         </QueryState>

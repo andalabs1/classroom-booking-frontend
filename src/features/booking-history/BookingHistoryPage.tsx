@@ -3,10 +3,11 @@ import { App, Button, DatePicker, Modal, Select, Space } from "antd";
 import dayjs from "dayjs";
 import { CheckCircle, Eye, Pencil, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { bookingsApi } from "../../api/bookings";
 import { useBooking, useMyBookings, useAction } from "../../services/queries";
 import type { Booking } from "../../types";
-import { bookingLabels } from "../../constants/bookingStatus";
+import { getBookingLabels } from "../../constants/bookingStatus";
 import { canChangeBooking } from "../../utils/bookingRules";
 import {
   PageHeader,
@@ -18,6 +19,7 @@ import { BookingStatusTag } from "../../components/data-display/StatusTags";
 import { BookingSummary } from "../booking/BookingSummary";
 import styles from "../booking/Booking.module.css";
 export function BookingHistoryPage() {
+  const { t } = useTranslation();
   const query = useMyBookings();
   const [status, setStatus] = useState<string>();
   const [roomId, setRoomId] = useState<string>();
@@ -38,11 +40,11 @@ export function BookingHistoryPage() {
   const { modal } = App.useApp();
   const cancel = useAction(
     (id: string) => bookingsApi.cancel(id),
-    "ยกเลิกการจองสำเร็จ",
+    t("bookingCancelledSuccess"),
   );
   const checkIn = useAction(
     (id: string) => bookingsApi.checkIn(id),
-    "เช็กอินสำเร็จ",
+    t("bookingCheckinSuccess"),
   );
   const rows = query.data?.items
     .filter(
@@ -55,11 +57,11 @@ export function BookingHistoryPage() {
   return (
     <>
       <PageHeader
-        title="ประวัติการจอง"
-        subtitle="ติดตามสถานะ และจัดการรายการจองของคุณ"
+        title={t("history")}
+        subtitle={t("historySubtitle")}
         action={
           <Button type="primary" onClick={() => navigate("/booking")}>
-            จองห้องเรียน
+            {t("bookingCreateTitle")}
           </Button>
         }
       />
@@ -81,7 +83,7 @@ export function BookingHistoryPage() {
             />
             <Select
               allowClear
-              placeholder="ทุกห้อง"
+              placeholder={t("historyAllRooms")}
               value={roomId}
               onChange={setRoomId}
               options={query.data?.items.flatMap((booking) =>
@@ -92,10 +94,10 @@ export function BookingHistoryPage() {
             />
             <Select
               allowClear
-              placeholder="ทุกสถานะ"
+              placeholder={t("historyAllStatuses")}
               value={status}
               onChange={setStatus}
-              options={Object.entries(bookingLabels).map(([value, label]) => ({
+              options={Object.entries(getBookingLabels(t)).map(([value, label]) => ({
                 value,
                 label,
               }))}
@@ -104,34 +106,34 @@ export function BookingHistoryPage() {
           <DataTable<Booking>
             dataSource={rows}
             columns={[
-              { title: "เลขที่การจอง", dataIndex: "id", width: 240 },
+              { title: t("historyBookingId"), dataIndex: "id", width: 240 },
               {
-                title: "ห้อง",
+                title: t("historyRoom"),
                 render: (_, b) =>
                   b.room?.code,
               },
               {
-                title: "วันที่",
+                title: t("historyDate"),
                 dataIndex: "date",
                 render: (v: string) => dayjs(v).format("DD/MM/YYYY"),
               },
-              { title: "เวลา", render: (_, b) => `${b.start}–${b.end}` },
+              { title: t("historyTime"), render: (_, b) => `${b.start}–${b.end}` },
               {
-                title: "วันที่ทำรายการ",
+                title: t("historyCreatedAt"),
                 dataIndex: "createdAt",
                 render: (v: string) => dayjs(v).format("DD/MM/YYYY"),
               },
               {
-                title: "สถานะ",
+                title: t("historyStatus"),
                 render: (_, b) => <BookingStatusTag status={b.status} />,
               },
               {
-                title: "การดำเนินการ",
+                title: t("historyActions"),
                 render: (_, b) => (
                   <Space>
                     <Button
                       size="small"
-                      aria-label="ดูรายละเอียด"
+                      aria-label={t("historyView")}
                       icon={<Eye size={14} />}
                       onClick={() => setSelected(b)}
                     />
@@ -140,7 +142,7 @@ export function BookingHistoryPage() {
                         {b.status === "PENDING" && (
                           <Button
                             size="small"
-                            aria-label="แก้ไข"
+                            aria-label={t("historyEdit")}
                             icon={<Pencil size={14} />}
                             onClick={() =>
                               navigate("/booking", {
@@ -152,14 +154,14 @@ export function BookingHistoryPage() {
                         <Button
                           size="small"
                           danger
-                          aria-label="ยกเลิกการจอง"
+                          aria-label={t("historyCancel")}
                           icon={<X size={14} />}
                           onClick={() =>
                             modal.confirm({
-                              title: "ยกเลิกการจองนี้?",
+                              title: t("historyCancelConfirm"),
                               content: `${b.id} · ${b.date}`,
-                              okText: "ยืนยันยกเลิก",
-                              cancelText: "กลับ",
+                              okText: t("historyCancelOk"),
+                              cancelText: t("historyCancelBack"),
                               onOk: () => cancel.mutateAsync(b.id),
                             })
                           }
@@ -169,7 +171,7 @@ export function BookingHistoryPage() {
                     {b.status === "APPROVED" && (
                       <Button
                         size="small"
-                        aria-label="เช็กอิน"
+                        aria-label={t("historyCheckin")}
                         icon={<CheckCircle size={14} />}
                         loading={checkIn.isPending}
                         onClick={() => checkIn.mutate(b.id)}
@@ -186,7 +188,7 @@ export function BookingHistoryPage() {
         open={!!selected}
         onCancel={closeDetails}
         title={selected?.id}
-        footer={<Button onClick={closeDetails}>ปิด</Button>}
+        footer={<Button onClick={closeDetails}>{t("historyClose")}</Button>}
       >
         {selected && (
           <>
@@ -196,7 +198,7 @@ export function BookingHistoryPage() {
               room={bookingQuery.data?.room ?? selected.room}
             />
             {(bookingQuery.data?.reason ?? selected.reason) && (
-              <p>เหตุผล: {bookingQuery.data?.reason ?? selected.reason}</p>
+              <p>{t("historyReason", { reason: bookingQuery.data?.reason ?? selected.reason })}</p>
             )}
           </>
         )}

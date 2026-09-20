@@ -71,23 +71,23 @@
   border-radius: 5px;
   box-shadow: 7px 8px 0 #e0d0eb;
   color: #f9efff;
-  padding: 13px 14px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  padding: 16px 40px 13px 14px;
 }
 .artBoard span {
+  display: block;
+  max-width: 112px;
   font-family: Manrope, sans-serif;
   font-weight: 600;
-  font-size: 14px;
-  line-height: 1.5;
-  white-space: nowrap;
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: break-word;
   letter-spacing: -0.4px;
 }
 .artBoard svg {
   position: absolute;
-  top: 12px;
-  right: 10px;
+  top: 14px;
+  right: 12px;
   width: 18px;
   height: 18px;
   color: #ead994;

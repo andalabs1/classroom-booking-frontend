@@ -41,3 +41,15 @@ export const equipmentOptions = [
   "TV",
   "HDMI",
 ];
+export const equipmentLabelKeys: Record<string, string> = {
+  Projector: "equipmentProjector",
+  Whiteboard: "equipmentWhiteboard",
+  "Wi-Fi": "equipmentWifi",
+  "Air Conditioner": "equipmentAirConditioner",
+  Computer: "equipmentComputer",
+  Microphone: "equipmentMicrophone",
+  TV: "equipmentTelevision",
+  HDMI: "equipmentHdmi",
+};
+export const getEquipmentLabel = (t: TFunction, equipment: string) =>
+  t(equipmentLabelKeys[equipment] ?? equipment);

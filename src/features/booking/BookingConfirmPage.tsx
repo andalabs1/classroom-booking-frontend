@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Alert, Button, Result, Space, Steps } from "antd";
 import { Navigate, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { bookingsApi } from "../../api/bookings";
 import { useAction, useClassroom } from "../../services/queries";
 import type { Booking, BookingDraft } from "../../types";
@@ -19,6 +20,7 @@ function getDraft() {
   }
 }
 export function BookingConfirmPage() {
+  const { t } = useTranslation();
   const [draft] = useState(getDraft);
   const [created, setCreated] = useState<Booking>();
   const roomQuery = useClassroom(draft?.roomId);
@@ -28,7 +30,7 @@ export function BookingConfirmPage() {
       value.editingId
         ? bookingsApi.update(value.editingId, value)
         : bookingsApi.create(value),
-    "จองห้องสำเร็จ",
+    t("bookingSuccessTitle"),
   );
   if (!draft) return <Navigate to="/booking" replace />;
   const room = roomQuery.data;
@@ -37,18 +39,18 @@ export function BookingConfirmPage() {
       <Panel>
         <Result
           status="success"
-          title="จองห้องเรียนสำเร็จ"
-          subTitle="ระบบได้รับคำขอแล้ว กรุณารอการอนุมัติจากเจ้าหน้าที่"
+          title={t("bookingSuccessTitle")}
+          subTitle={t("bookingSuccessSubtitle")}
           extra={
             <Space wrap>
               <Button
                 type="primary"
                 onClick={() => navigate("/booking-history")}
               >
-                ดูประวัติการจอง
+                {t("bookingViewHistory")}
               </Button>
               <Button onClick={() => navigate("/rooms")}>
-                กลับหน้าห้องเรียน
+                {t("bookingBackToRooms")}
               </Button>
             </Space>
           }
@@ -62,16 +64,16 @@ export function BookingConfirmPage() {
   return (
     <>
       <PageHeader
-        title="ยืนยันการจอง"
-        subtitle="ตรวจสอบรายละเอียดให้ถูกต้องก่อนยืนยัน"
+        title={t("bookingConfirmTitle")}
+        subtitle={t("bookingConfirmSubtitle")}
       />
       <Steps
         className={styles.steps}
         current={1}
         items={[
-          { title: "ข้อมูลการจอง" },
-          { title: "ตรวจสอบและยืนยัน" },
-          { title: "จองสำเร็จ" },
+          { title: t("bookingStepDetails") },
+          { title: t("bookingStepConfirm") },
+          { title: t("bookingStepCompleted") },
         ]}
       />
       <QueryState
@@ -84,7 +86,7 @@ export function BookingConfirmPage() {
           <Alert
             type="info"
             showIcon
-            title="ระบบจะตรวจสอบห้องว่างอีกครั้งเมื่อคุณยืนยันการจอง"
+            title={t("bookingConfirmAvailability")}
           />
           {mutation.error && (
             <Alert type="error" title={mutation.error.message} />
@@ -94,7 +96,7 @@ export function BookingConfirmPage() {
               disabled={mutation.isPending}
               onClick={() => navigate("/booking", { state: { draft } })}
             >
-              ย้อนกลับ
+              {t("bookingBack")}
             </Button>
             <Button
               type="primary"
@@ -108,7 +110,7 @@ export function BookingConfirmPage() {
                 })
               }
             >
-              ยืนยันการจอง
+              {t("bookingConfirm")}
             </Button>
           </div>
         </Panel>

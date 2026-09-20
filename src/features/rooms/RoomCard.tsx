@@ -14,6 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { Room } from "../../types";
 import { RoomStatusTag } from "../../components/data-display/StatusTags";
+import { getEquipmentLabel } from "../../constants/bookingStatus";
 import styles from "./Rooms.module.css";
 export function RoomCard({ room, busy }: { room: Room; busy?: boolean }) {
   const navigate = useNavigate();
@@ -43,12 +44,12 @@ export function RoomCard({ room, busy }: { room: Room; busy?: boolean }) {
         <p className={styles.roomLocation}>
           <Building2 size={14} />
           {room.building}
-          <span>•</span>ชั้น {room.floor}
+          <span>•</span>{t("roomFloor", { floor: room.floor })}
         </p>
         <div className={styles.roomCapacity}>
           <Users size={15} />
           <span>
-            ความจุ <strong>{room.capacity}</strong> ที่นั่ง
+            {t("roomCapacity", { count: room.capacity })}
           </span>
         </div>
         <div className={styles.equipment}>
@@ -64,7 +65,7 @@ export function RoomCard({ room, busy }: { room: Room; busy?: boolean }) {
             return (
               <span key={item}>
                 <Icon size={12} />
-                {item}
+                {getEquipmentLabel(t, item)}
               </span>
             );
           })}
@@ -79,9 +80,9 @@ export function RoomCard({ room, busy }: { room: Room; busy?: boolean }) {
             {t("details")}
           </Button>
           <div>
-            <Tooltip title="ดูตาราง">
+            <Tooltip title={t("roomViewSchedule")}>
               <Button
-                aria-label={`ดูตาราง ${room.code}`}
+                aria-label={`${t("roomViewSchedule")} ${room.code}`}
                 icon={<CalendarDays size={16} />}
                 onClick={() => navigate(`/room-schedule?room=${room.id}`)}
               />

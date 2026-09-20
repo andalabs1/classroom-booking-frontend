@@ -1,5 +1,6 @@
 import { Descriptions } from "antd";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 import type { BookingDraft, Room } from "../../types";
 import styles from "./Booking.module.css";
 export function BookingSummary({
@@ -9,6 +10,7 @@ export function BookingSummary({
   draft: BookingDraft;
   room?: Room;
 }) {
+  const { t } = useTranslation();
   return (
     <Descriptions
       column={1}
@@ -16,31 +18,31 @@ export function BookingSummary({
       items={[
         {
           key: "room",
-          label: "ห้องเรียน",
-          children: `${room?.code ?? ""} · ${room?.name ?? "ไม่พบห้อง"}`,
+          label: t("bookingSummaryRoom"),
+          children: `${room?.code ?? ""} · ${room?.name ?? t("bookingSummaryRoomMissing")}`,
         },
         {
           key: "date",
-          label: "วันที่ใช้งาน",
+          label: t("bookingSummaryDate"),
           children: dayjs(draft.date).format("DD MMMM YYYY"),
         },
         {
           key: "time",
-          label: "เวลา",
-          children: `${draft.start}–${draft.end} น.`,
+          label: t("bookingSummaryTime"),
+          children: `${draft.start}–${draft.end}`,
         },
         {
           key: "attendees",
-          label: "จำนวนผู้ใช้งาน",
-          children: `${draft.attendees} คน`,
+          label: t("bookingSummaryAttendees"),
+          children: t("bookingSummaryAttendeesValue", { count: draft.attendees }),
         },
-        { key: "purpose", label: "วัตถุประสงค์", children: draft.purpose },
+        { key: "purpose", label: t("bookingSummaryPurpose"), children: draft.purpose },
         {
           key: "equipment",
-          label: "อุปกรณ์",
-          children: draft.equipment.join(", ") || "ไม่ระบุ",
+          label: t("bookingSummaryEquipment"),
+          children: draft.equipment.join(", ") || t("bookingSummaryUnspecified"),
         },
-        { key: "note", label: "หมายเหตุ", children: draft.note || "—" },
+        { key: "note", label: t("bookingSummaryNote"), children: draft.note || "—" },
       ]}
     />
   );

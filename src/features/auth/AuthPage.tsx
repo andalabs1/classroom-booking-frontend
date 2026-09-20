@@ -1,5 +1,4 @@
 import { ThemeToggle } from "../../components/common/ThemeToggle";
-import { fieldLabels } from "../../config/fieldLabels";
 import { App, Alert, Button, Form, Input } from "antd";
 import { BookOpen, ArrowRight, Mail, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
@@ -11,26 +10,35 @@ import { useAction } from "../../services/queries";
 import { authApi } from "../../api/auth";
 import { useAuth } from "../../stores/authStore";
 import styles from "./Auth.module.css";
-const loginSchema = z.object({
-  username: z.string().min(1, "กรุณากรอกชื่อผู้ใช้หรืออีเมล"),
-  password: z.string().min(1, "กรุณากรอกรหัสผ่าน"),
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+type LoginValues = { username: string; password: string };
+type RegisterValues = {
+  firstName: string;
+  lastName: string;
+  id: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+};
+const createLoginSchema = (t: Translate) => z.object({
+  username: z.string().min(1, t("validationUsername")),
+  password: z.string().min(1, t("validationPassword")),
 });
-const registerSchema = z
+const createRegisterSchema = (t: Translate) => z
   .object({
-    firstName: z.string().trim().min(1, "กรุณากรอกชื่อ"),
-    lastName: z.string().trim().min(1, "กรุณากรอกนามสกุล"),
-    id: z.string().trim().min(3, "กรุณากรอกรหัสผู้ใช้งาน"),
-    email: z.string().email("อีเมลไม่ถูกต้อง"),
-    phone: z.string().regex(/^0[0-9]{8,9}$/, "เบอร์โทรต้องมี 9–10 หลัก"),
-    password: z.string().min(8, "รหัสผ่านอย่างน้อย 8 ตัวอักษร"),
-    confirmPassword: z.string().min(1, "กรุณายืนยันรหัสผ่าน"),
+    firstName: z.string().trim().min(1, t("validationFirstName")),
+    lastName: z.string().trim().min(1, t("validationLastName")),
+    id: z.string().trim().min(3, t("validationUserCode")),
+    email: z.string().email(t("validationEmail")),
+    phone: z.string().regex(/^0[0-9]{8,9}$/, t("validationPhone")),
+    password: z.string().min(8, t("validationRegisterPassword")),
+    confirmPassword: z.string().min(1, t("validationConfirmPassword")),
   })
   .refine((v) => v.password === v.confirmPassword, {
     path: ["confirmPassword"],
-    message: "รหัสผ่านไม่ตรงกัน",
+    message: t("validationRegisterPasswordMismatch"),
   });
-type LoginValues = z.infer<typeof loginSchema>;
-type RegisterValues = z.infer<typeof registerSchema>;
 type LoginPortal = "user" | "admin";
 
 function AuthVisualPanel() {
@@ -56,7 +64,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(createLoginSchema(t)),
     defaultValues: {
       username: "",
       password: "",
@@ -78,7 +86,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
               <BookOpen size={25} />
               Classroom
             </Link>
-            <span className={styles.eyebrow}>{isAdminPortal ? "ADMIN WORKSPACE" : "YOUR LEARNING SPACE"}</span>
+            <span className={styles.eyebrow}>{isAdminPortal ? t("authAdminWorkspace") : t("authLearningSpace")}</span>
             {isAdminPortal && <span className={styles.portalBadge}><ShieldCheck size={14} /> {t("adminPortal")}</span>}
             <h1>{isAdminPortal ? t("adminLoginTitle") : t("userLoginTitle")}</h1>
             <p>{isAdminPortal ? t("adminLoginSubtitle") : t("userLoginSubtitle")}</p>
@@ -110,7 +118,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
               )}
             >
               <Form.Item
-                label="ชื่อผู้ใช้หรืออีเมล"
+                label={t("authUsername")}
                 required
                 validateStatus={errors.username ? "error" : ""}
                 help={errors.username?.message}
@@ -121,7 +129,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
                   render={({ field }) => (
                     <Input
                       {...field}
-                      aria-label={fieldLabels[field.name] ?? field.name}
+                      aria-label={t("authUsername")}
                       prefix={<Mail size={16} />}
                       autoComplete="username"
                     />
@@ -129,7 +137,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
                 />
               </Form.Item>
               <Form.Item
-                label="รหัสผ่าน"
+                label={t("authPassword")}
                 required
                 validateStatus={errors.password ? "error" : ""}
                 help={errors.password?.message}
@@ -140,7 +148,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
                   render={({ field }) => (
                     <Input.Password
                       {...field}
-                      aria-label={fieldLabels[field.name] ?? field.name}
+                      aria-label={t("authPassword")}
                       prefix={<LockKeyhole size={16} />}
                       autoComplete="current-password"
                     />
@@ -152,13 +160,12 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
                 className={styles.forgot}
                 onClick={() =>
                   modal.info({
-                    title: "ลืมรหัสผ่าน",
-                    content:
-                      "กรุณาติดต่อผู้ดูแลระบบที่ฝ่ายอาคารสถานที่เพื่อขอความช่วยเหลือในการรีเซ็ตรหัสผ่าน",
+                    title: t("authForgotPasswordTitle"),
+                    content: t("authForgotPasswordDescription"),
                   })
                 }
               >
-                ลืมรหัสผ่าน
+                {t("authForgotPassword")}
               </Button>
               {mutation.error && (
                 <Alert type="error" title={mutation.error.message} />
@@ -169,7 +176,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
                 htmlType="submit"
                 loading={mutation.isPending}
               >
-                เข้าสู่ระบบ <ArrowRight size={17} />
+                {t("authLogin")} <ArrowRight size={17} />
               </Button>
             </Form>
             {isAdminPortal ? (
@@ -186,7 +193,7 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
             </Link>
           </div>
           <div className={styles.caption}>
-            {isAdminPortal ? "Classroom Booking System · ADMIN" : t("authCaption")}
+            {isAdminPortal ? t("authAdminCaption") : t("authCaption")}
           </div>
         </section>
       </main>
@@ -194,12 +201,13 @@ export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
   );
 }
 export function RegisterPage() {
+  const { t } = useTranslation();
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(createRegisterSchema(t)),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -221,16 +229,16 @@ export function RegisterPage() {
         phone: data.phone,
         password: data.password,
       }),
-    "สมัครสมาชิกสำเร็จ",
+    t("authRegisterSuccess"),
   );
   const fields: { name: keyof RegisterValues; label: string }[] = [
-    { name: "firstName", label: "ชื่อ" },
-    { name: "lastName", label: "นามสกุล" },
-    { name: "id", label: "รหัสนักศึกษา / รหัสผู้ใช้งาน" },
+    { name: "firstName", label: t("authFirstName") },
+    { name: "lastName", label: t("authLastName") },
+    { name: "id", label: t("authUserCode") },
     { name: "email", label: "Email" },
-    { name: "phone", label: "เบอร์โทรศัพท์" },
-    { name: "password", label: "Password" },
-    { name: "confirmPassword", label: "Confirm Password" },
+    { name: "phone", label: t("authPhone") },
+    { name: "password", label: t("authPassword") },
+    { name: "confirmPassword", label: t("authConfirmPassword") },
   ];
   return (
     <div className={`${styles.auth} ${styles.loginAuth} ${styles.registerAuth}`}>
@@ -243,9 +251,9 @@ export function RegisterPage() {
               <BookOpen size={25} />
               Classroom
             </Link>
-            <span className={styles.eyebrow}>YOUR LEARNING SPACE</span>
-            <h1>สมัครสมาชิก</h1>
-            <p>เริ่มต้นจองพื้นที่การเรียนรู้ของคุณ</p>
+            <span className={styles.eyebrow}>{t("authLearningSpace")}</span>
+            <h1>{t("authRegisterTitle")}</h1>
+            <p>{t("authRegisterSubtitle")}</p>
             <Form
               layout="vertical"
               onFinish={handleSubmit((data) =>
@@ -268,13 +276,13 @@ export function RegisterPage() {
                         name.toLowerCase().includes("password") ? (
                           <Input.Password
                             {...field}
-                            aria-label={fieldLabels[field.name] ?? field.name}
+                            aria-label={label}
                             autoComplete="new-password"
                           />
                         ) : (
                           <Input
                             {...field}
-                            aria-label={fieldLabels[field.name] ?? field.name}
+                            aria-label={label}
                           />
                         )
                       }
@@ -291,14 +299,14 @@ export function RegisterPage() {
                 type="primary"
                 loading={mutation.isPending}
               >
-                สมัครสมาชิก
+                {t("authRegisterTitle")}
               </Button>
             </Form>
             <p className={styles.switch}>
-              มีบัญชีแล้ว? <Link to="/login">เข้าสู่ระบบ</Link>
+              {t("authHaveAccount")} <Link to="/login">{t("authLogin")}</Link>
             </p>
           </div>
-          <div className={styles.caption}>Classroom Booking System · พื้นที่สำหรับทุกการเรียนรู้</div>
+          <div className={styles.caption}>{t("authCaption")}</div>
         </section>
       </main>
     </div>

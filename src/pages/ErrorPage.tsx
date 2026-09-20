@@ -1,21 +1,23 @@
 import { Button, Result } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 export function ErrorPage({ code = "404" }: { code?: "403" | "404" | "500" }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <Result
       status={code}
       title={code}
       subTitle={
         code === "403"
-          ? "คุณไม่มีสิทธิ์เข้าถึงหน้านี้"
+          ? t("errorForbidden")
           : code === "500"
-            ? "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
-            : "ไม่พบหน้าที่คุณต้องการ"
+            ? t("errorUnexpected")
+            : t("errorNotFound")
       }
       extra={
         <Button type="primary" onClick={() => navigate("/rooms")}>
-          กลับหน้าห้องเรียน
+          {t("roomBack")}
         </Button>
       }
     />

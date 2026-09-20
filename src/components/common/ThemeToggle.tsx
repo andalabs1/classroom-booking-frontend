@@ -6,16 +6,9 @@ import { useThemeStore } from "../../stores/themeStore";
 export function ThemeToggle({ className }: { className?: string }) {
   const mode = useThemeStore((state) => state.mode);
   const toggle = useThemeStore((state) => state.toggle);
-  const { i18n } = useTranslation();
+  const { t } = useTranslation();
   const dark = mode === "dark";
-  const label =
-    i18n.language === "th"
-      ? dark
-        ? "เปลี่ยนเป็นโหมดสว่าง"
-        : "เปลี่ยนเป็นโหมดมืด"
-      : dark
-        ? "Switch to light mode"
-        : "Switch to dark mode";
+  const label = t(dark ? "themeLight" : "themeDark");
   return (
     <Tooltip title={label}>
       <Button

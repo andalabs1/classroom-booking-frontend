@@ -39,6 +39,12 @@ export function RoomListPage() {
   const [sort, setSort] = useState("code");
   const [page, setPage] = useState(1);
   const rooms = query.data?.items ?? [];
+  const categoryLabels: Record<string, string> = {
+    "ทั้งหมด": t("roomsCategoryAll"),
+    "ห้องเรียน": t("roomsCategoryClassroom"),
+    "ห้องปฏิบัติการ": t("roomsCategoryLab"),
+    "ห้องประชุม": t("roomsCategoryMeeting"),
+  };
   const now = dayjs();
   const availabilityQuery = useClassroomsAvailability(
     rooms.length
@@ -99,38 +105,36 @@ export function RoomListPage() {
     <>
       <PageHeader
         title={t("roomTitle")}
-        subtitle="ค้นหาห้องตามอาคาร จำนวนที่นั่ง และอุปกรณ์ แล้วเลือกเวลาที่ต้องการจอง"
+        subtitle={t("roomsSubtitle")}
         action={
           <Button
             icon={<CalendarDays size={16} />}
             onClick={() => navigate("/room-schedule")}
           >
-            ดูตารางการใช้ห้อง
+            {t("roomsSchedule")}
           </Button>
         }
       />
       <div className={styles.welcome}>
         <div>
           <div className={styles.eyebrow}>
-            <span /> LEARNING STARTS HERE
+            <span /> {t("roomsWelcomeKicker")}
           </div>
           <h2>
-            ทุกการเรียนรู้ เริ่มต้นที่พื้นที่ดี ๆ <Sparkles size={22} />
+            {t("roomsWelcomeTitle")} <Sparkles size={22} />
           </h2>
           <p>
-            เลือกห้องเรียนที่เหมาะกับคุณ เช็กเวลาว่าง แล้วจองได้ในไม่กี่ขั้นตอน
+            {t("roomsWelcomeDescription")}
           </p>
           <Button type="primary" onClick={() => navigate("/booking")}>
-            จองห้องเรียน <ArrowRight size={16} />
+            {t("roomsWelcomeAction")} <ArrowRight size={16} />
           </Button>
         </div>
         <div className={styles.welcomeArt}>
           <div className={styles.artWindow} />
           <div className={styles.artBoard}>
             <span>
-              Make room
-              <br />
-              for great ideas.
+              {t("roomsMakeRoom")}
             </span>
             <Sparkles size={25} />
           </div>
@@ -172,7 +176,7 @@ export function RoomListPage() {
               color: "yellow",
             },
             {
-              label: "ที่นั่งทั้งหมด",
+              label: t("roomsTotalSeats"),
               count: rooms.reduce((n, r) => n + r.capacity, 0),
               icon: Users,
               color: "pink",
@@ -186,7 +190,7 @@ export function RoomListPage() {
                 <span>{stat.label}</span>
                 <strong>
                   {stat.count}
-                  <small>{stat.color === "pink" ? "ที่นั่ง" : "ห้อง"}</small>
+                  <small>{stat.color === "pink" ? t("roomsSeatsSuffix") : t("roomsRoomsSuffix")}</small>
                 </strong>
               </div>
             </div>
@@ -195,17 +199,17 @@ export function RoomListPage() {
         <section className={styles.catalog}>
           <div className={styles.catalogHeading}>
             <h2>
-              ค้นหาห้องเรียน <span>เลือกเงื่อนไขที่ต้องการ</span>
+              {t("roomsFindTitle")} <span>{t("roomsFindSubtitle")}</span>
             </h2>
             {hasFilters && (
               <Button type="text" icon={<X size={14} />} onClick={reset}>
-                ล้างตัวกรอง
+                {t("roomsResetFilters")}
               </Button>
             )}
           </div>
           <div className={styles.filters}>
             <Input
-              aria-label="ค้นหาห้องเรียน"
+              aria-label={t("roomsSearchAria")}
               allowClear
               prefix={<Search size={17} />}
               placeholder={t("search")}
@@ -216,9 +220,9 @@ export function RoomListPage() {
               }}
             />
             <Select
-              aria-label="อาคาร"
+              aria-label={t("roomsBuilding")}
               allowClear
-              placeholder="ทุกอาคาร"
+              placeholder={t("roomsAllBuildings")}
               value={building}
               onChange={(v) => {
                 setBuilding(v);
@@ -229,9 +233,9 @@ export function RoomListPage() {
               )}
             />
             <Select
-              aria-label="จำนวนที่นั่ง"
+              aria-label={t("roomsCapacity")}
               allowClear
-              placeholder="จำนวนที่นั่ง"
+              placeholder={t("roomsCapacityPlaceholder")}
               value={capacity}
               onChange={(v) => {
                 setCapacity(v);
@@ -239,27 +243,27 @@ export function RoomListPage() {
               }}
               options={[10, 30, 50, 80].map((value) => ({
                 value,
-                label: `${value} ที่นั่งขึ้นไป`,
+                label: t("roomsMinimumSeats", { count: value }),
               }))}
             />
             <Select
-              aria-label="สถานะ"
+              aria-label={t("roomsStatus")}
               allowClear
-              placeholder="ทุกสถานะ"
+              placeholder={t("roomsAllStatuses")}
               value={status}
               onChange={(v) => {
                 setStatus(v);
                 setPage(1);
               }}
               options={[
-                { value: "ACTIVE", label: "พร้อมใช้งาน" },
-                { value: "BUSY", label: "มีการใช้งาน" },
-                { value: "MAINTENANCE", label: "ปิดปรับปรุง" },
-                { value: "INACTIVE", label: "ไม่พร้อมใช้งาน" },
+                { value: "ACTIVE", label: t("roomsStatusActive") },
+                { value: "BUSY", label: t("roomsStatusBusy") },
+                { value: "MAINTENANCE", label: t("roomsStatusMaintenance") },
+                { value: "INACTIVE", label: t("roomsStatusInactive") },
               ]}
             />
             <Button
-              aria-label="ตัวกรองเพิ่มเติม"
+              aria-label={t("roomsMoreFilters")}
               aria-expanded={more}
               aria-controls="additional-room-filters"
               icon={<SlidersHorizontal size={17} />}
@@ -271,8 +275,8 @@ export function RoomListPage() {
             <div className={styles.extraFilters} id="additional-room-filters">
               <Select
                 allowClear
-                aria-label="ชั้น"
-                placeholder="ทุกชั้น"
+                aria-label={t("roomsFloor")}
+                placeholder={t("roomsAllFloors")}
                 value={floor}
                 onChange={(v) => {
                   setFloor(v);
@@ -282,13 +286,13 @@ export function RoomListPage() {
                   .sort((a, b) => a - b)
                   .map((value) => ({
                     value,
-                    label: `ชั้น ${value}`,
+                    label: t("roomsFloorOption", { floor: value }),
                   }))}
               />
               <Select
                 allowClear
-                aria-label="อุปกรณ์"
-                placeholder="อุปกรณ์"
+                aria-label={t("roomsEquipment")}
+                placeholder={t("roomsEquipmentPlaceholder")}
                 value={equipment}
                 onChange={(v) => {
                   setEquipment(v);
@@ -300,7 +304,7 @@ export function RoomListPage() {
                 }))}
               />
               <Button type="text" icon={<X size={14} />} onClick={reset}>
-                ล้างตัวกรอง
+                {t("roomsResetFilters")}
               </Button>
             </div>
           )}
@@ -318,7 +322,7 @@ export function RoomListPage() {
                     setPage(1);
                   }}
                 >
-                  {tab}
+                  {categoryLabels[tab]}
                   {tab === "ทั้งหมด" && <span>{rooms.length}</span>}
                 </button>
               ),
@@ -326,14 +330,14 @@ export function RoomListPage() {
           </div>
           <div className={styles.viewControls}>
             <Select
-              aria-label="เรียงลำดับ"
+              aria-label={t("roomsSort")}
               variant="borderless"
               value={sort}
               onChange={setSort}
               suffixIcon={<ArrowDownWideNarrow size={14} />}
               options={[
-                { value: "code", label: "เรียงตามชื่อห้อง" },
-                { value: "capacity", label: "ความจุมากที่สุด" },
+                { value: "code", label: t("roomsSortCode") },
+                { value: "capacity", label: t("roomsSortCapacity") },
               ]}
             />
             <Segmented
@@ -342,21 +346,21 @@ export function RoomListPage() {
               options={[
                 {
                   value: "grid",
-                  icon: <LayoutGrid size={16} aria-label="มุมมองตาราง" />,
-                  title: "ตาราง",
+                  icon: <LayoutGrid size={16} aria-label={t("roomsGridViewAria")} />,
+                  title: t("roomsGridView"),
                 },
                 {
                   value: "list",
-                  icon: <List size={16} aria-label="มุมมองรายการ" />,
-                  title: "รายการ",
+                  icon: <List size={16} aria-label={t("roomsListViewAria")} />,
+                  title: t("roomsListView"),
                 },
               ]}
             />
           </div>
         </div>
         <div className={styles.resultCount} role="status" aria-live="polite">
-          พบ <strong>{filtered.length}</strong> ห้องเรียน{" "}
-          <span>เลือกห้องเพื่อดูรายละเอียดหรือตรวจสอบตาราง</span>
+          {t("roomsFound", { count: filtered.length })}{" "}
+          <span>{t("roomsFoundDescription")}</span>
         </div>
         {filtered.length ? (
           <div
@@ -373,15 +377,17 @@ export function RoomListPage() {
               ))}
           </div>
         ) : (
-          <Empty description="ไม่พบห้องเรียนที่ตรงกับตัวกรอง">
-            <Button onClick={reset}>ล้างตัวกรอง</Button>
+          <Empty description={t("roomsEmpty")}>
+            <Button onClick={reset}>{t("roomsResetFilters")}</Button>
           </Empty>
         )}
         <div className={styles.pagination}>
           <span>
-            แสดง {filtered.length ? (currentPage - 1) * 6 + 1 : 0}–
-            {Math.min(currentPage * 6, filtered.length)} จาก {filtered.length}{" "}
-            ห้อง
+            {t("roomsShowing", {
+              from: filtered.length ? (currentPage - 1) * 6 + 1 : 0,
+              to: Math.min(currentPage * 6, filtered.length),
+              total: filtered.length,
+            })}
           </span>
           <Pagination
             current={currentPage}

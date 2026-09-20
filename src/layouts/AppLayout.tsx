@@ -45,15 +45,12 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
   );
   const help = () =>
     modal.info({
-      title: "ศูนย์ช่วยเหลือ",
+      title: t("helpTitle"),
       content: (
         <>
-          <p>เลือกห้อง → ดูตาราง → กรอกข้อมูล → ยืนยันการจอง</p>
-          <p>
-            จองห้องได้เวลา 08:00–20:00 น. รายการจะรอการอนุมัติจากเจ้าหน้าที่
-            สามารถแก้ไขรายการรออนุมัติหรือยกเลิกก่อนเวลาเริ่มใช้งาน
-          </p>
-          <p>ติดต่อฝ่ายอาคารสถานที่: 02-123-4567 ต่อ 101</p>
+          <p>{t("helpFlow")}</p>
+          <p>{t("helpDescription")}</p>
+          <p>{t("helpContact")}</p>
         </>
       ),
     });
@@ -62,7 +59,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
       <Link
         to="/rooms"
         className={styles.brand}
-        aria-label="Classroom หน้าห้องเรียน"
+        aria-label={t("brandAria")}
         onClick={() => setDrawer(false)}
       >
         <span className={styles.brandIcon}>
@@ -73,7 +70,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
         </span>
       </Link>
       <div className={styles.sectionLabel}>
-        {admin ? "ADMIN WORKSPACE" : "WORKSPACE"}
+        {admin ? t("authAdminWorkspace") : t("sidebarWorkspace")}
       </div>
       <nav className={styles.nav}>
         {menus.map((item) => {
@@ -102,12 +99,8 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
           <span className={styles.tipIcon}>
             <Sparkles size={18} />
           </span>
-          <strong>พื้นที่ดี ๆ เริ่มต้นการเรียนรู้</strong>
-          <p>
-            เลือกห้องที่เหมาะกับคุณ
-            <br />
-            แล้วมาเรียนรู้ไปด้วยกัน
-          </p>
+          <strong>{t("sidebarTipTitle")}</strong>
+          <p>{t("sidebarTipDescription")}</p>
           <Button
             type="link"
             onClick={() => {
@@ -115,7 +108,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
               navigate("/room-schedule");
             }}
           >
-            ดูตารางการใช้ห้อง <ChevronRight size={14} />
+            {t("roomsSchedule")} <ChevronRight size={14} />
           </Button>
         </div>
         <button
@@ -126,7 +119,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
           }}
         >
           <CircleHelp size={18} />
-          ศูนย์ช่วยเหลือ
+          {t("helpTitle")}
         </button>
         {user?.role === "ADMIN" && (
           <Link
@@ -135,7 +128,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
             onClick={() => setDrawer(false)}
           >
             <ShieldCheck size={18} />
-            {admin ? "หน้าผู้ใช้งาน" : "Admin Back Office"}
+            {admin ? t("sidebarAdminToUser") : t("sidebarUserToAdmin")}
           </Link>
         )}
         <div className={styles.sidebarFoot}>
@@ -149,7 +142,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
     <div className={`${styles.shell} ${collapsed ? styles.collapsed : ""}`}>
       <aside className={styles.sidebar}>{sidebar}</aside>
       <Drawer
-        title="เมนูหลัก"
+        title={t("menuMain")}
         open={drawer}
         onClose={() => setDrawer(false)}
         placement="left"
@@ -164,19 +157,19 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
             <Button
               className={styles.mobileToggle}
               type="text"
-              aria-label="เปิดเมนู"
+              aria-label={t("openMenu")}
               icon={<Menu size={21} />}
               onClick={() => setDrawer(true)}
             />
             <Button
               className={styles.desktopToggle}
               type="text"
-              aria-label={collapsed ? "ขยายเมนู" : "ย่อเมนู"}
+              aria-label={collapsed ? t("expandMenu") : t("collapseMenu")}
               aria-expanded={!collapsed}
               icon={<PanelLeftClose size={18} />}
               onClick={() => setCollapsed(!collapsed)}
             />
-            <span>{admin ? "ผู้ดูแลระบบ" : "หน้าหลัก"}</span>
+            <span>{admin ? t("breadcrumbAdmin") : t("breadcrumbUser")}</span>
             <ChevronRight size={13} />
             <strong>
               {active ? t(active.key) : t("details")}
@@ -185,7 +178,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
           <div className={styles.headerRight}>
             {user && <NotificationBell key={user.id} user={user} />}
             <ThemeToggle />
-            <Tooltip title="Change language">
+            <Tooltip title={t("languageToggle")}>
               <Button
                 type="text"
                 size="small"
@@ -227,7 +220,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
               >
                 <button
                   className={styles.profile}
-                  aria-label={`เมนูบัญชี ${user.firstName} ${user.lastName}`}
+                  aria-label={t("accountMenu", { name: `${user.firstName} ${user.lastName}` })}
                 >
                   <Avatar className={styles.avatar}>
                     {user.firstName.slice(0, 1)}
@@ -237,14 +230,14 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
                       {user.firstName} {user.lastName}
                     </strong>
                     <small>
-                      {user.role === "ADMIN" ? "ผู้ดูแลระบบ" : "นักศึกษา"}
+                      {user.role === "ADMIN" ? t("profileAdmin") : t("student")}
                     </small>
                   </span>
                   <ChevronDown size={14} />
                 </button>
               </Dropdown>
             ) : (
-              <Button onClick={() => navigate("/login")}>เข้าสู่ระบบ</Button>
+              <Button onClick={() => navigate("/login")}>{t("authLogin")}</Button>
             )}
           </div>
         </header>
@@ -255,7 +248,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
           <span>© {new Date().getFullYear()} Classroom Booking System</span>
           <span>
             <GraduationCap size={14} />
-            พื้นที่สำหรับทุกการเรียนรู้
+            {t("footerTagline")}
           </span>
         </footer>
       </div>
