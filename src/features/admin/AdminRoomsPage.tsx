@@ -43,8 +43,21 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
     return false;
   };
   return (
-    <Modal open title={room.id ? t("adminEditRoom") : t("adminAddRoom")} onCancel={onClose} footer={null} width={680}>
-      <Form form={form} layout="vertical" initialValues={room} onFinish={(values) => save.mutate(values, { onSuccess: onClose })}>
+    <Modal
+      open
+      title={room.id ? t("adminEditRoom") : t("adminAddRoom")}
+      onCancel={onClose}
+      width={760}
+      className={styles.roomEditorModal}
+      style={{ top: 24 }}
+      styles={{ body: { maxHeight: "calc(100vh - 184px)", overflowY: "auto" } }}
+      footer={
+        <Button type="primary" htmlType="submit" form="room-editor-form" loading={save.isPending}>
+          {t("adminSave")}
+        </Button>
+      }
+    >
+      <Form id="room-editor-form" form={form} layout="vertical" initialValues={room} onFinish={(values) => save.mutate(values, { onSuccess: onClose })}>
         <div className={styles.formGrid}>
           <Form.Item label={t("adminRoomCode")} name="code" rules={[{ required: true, message: t("adminRequiredRoomCode") }]}><Input /></Form.Item>
           <Form.Item label={t("adminRoomName")} name="name" rules={[{ required: true, message: t("adminRequiredRoomName") }]}><Input /></Form.Item>
@@ -66,7 +79,6 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
             {localImageKey(imageUrl) && <Button danger loading={removeImage.isPending} onClick={() => removeImage.mutate(localImageKey(imageUrl)!, { onSuccess: () => form.setFieldValue("image", "/room-placeholder.svg") })}>{t("adminDeleteUploadedImage")}</Button>}
           </div>
         </div>
-        <Button block type="primary" htmlType="submit" loading={save.isPending}>{t("adminSave")}</Button>
       </Form>
     </Modal>
   );

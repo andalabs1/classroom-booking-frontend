@@ -59,8 +59,12 @@
 .imageActions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   margin: -4px 0 20px;
+}
+.roomEditorModal {
+  max-width: calc(100vw - 32px);
 }
 .imagePreview img {
   object-fit: cover;
