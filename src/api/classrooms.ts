@@ -13,7 +13,7 @@ type ApiClassroom = {
   category?: string | null
   equipment?: unknown
   imageUrl?: string | null
-  status: 'AVAILABLE' | 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
 }
 
 type ApiBooking = {
@@ -41,7 +41,7 @@ export type ClassroomFilters = {
   building?: string
   floor?: number
   category?: string
-  status?: 'ACTIVE' | 'AVAILABLE' | 'INACTIVE' | 'MAINTENANCE'
+  status?: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
   minCapacity?: number
   equipment?: string
   sort?: 'code' | 'capacity' | 'name'
@@ -87,7 +87,7 @@ export function toRoom(room: ApiClassroom): Room {
     equipment: Array.isArray(room.equipment) ? room.equipment.map(String) : [],
     image: room.imageUrl ?? '/room-placeholder.svg',
     category: room.category ?? 'ห้องเรียน',
-    status: room.status === 'AVAILABLE' || room.status === 'ACTIVE' ? 'ACTIVE' : room.status,
+    status: room.status,
   }
 }
 

@@ -40,7 +40,7 @@ export type AdminBooking = Booking & {
 export type AdminRoomInput = Omit<Room, 'id' | 'image' | 'status' | 'floor'> & {
   floor: string
   imageUrl?: string | null
-  status: 'AVAILABLE' | 'INACTIVE' | 'MAINTENANCE'
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
 }
 export type AdminUserInput = {
   name: string
@@ -181,7 +181,7 @@ function toAdminRoomInput(room: Room): AdminRoomInput {
     category: room.category,
     equipment: room.equipment,
     imageUrl: room.image === '/room-placeholder.svg' ? null : room.image,
-    status: room.status === 'ACTIVE' ? 'AVAILABLE' : room.status,
+    status: room.status,
   }
 }
 

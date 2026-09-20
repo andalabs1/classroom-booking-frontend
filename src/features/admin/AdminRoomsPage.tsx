@@ -2,7 +2,7 @@ import { useDeferredValue, useState } from "react";
 import { App, Button, Descriptions, Form, Image, Input, InputNumber, Modal, Select, Tooltip, Upload, type UploadProps } from "antd";
 import { useTranslation } from "react-i18next";
 import { Eye, Pencil, Plus, Power, Trash2 } from "lucide-react";
-import { adminApi } from "../../api/admin";
+import { adminApi, type AdminRoomInput } from "../../api/admin";
 import { localImageKey, uploadsApi } from "../../api/uploads";
 import { useAction, useAdminClassroom, useAdminClassrooms } from "../../services/queries";
 import type { Room } from "../../types";
@@ -12,6 +12,11 @@ import { RoomStatusTag } from "../../components/data-display/StatusTags";
 import styles from "./Admin.module.css";
 
 const emptyRoom: Room = { id: "", code: "", name: "", building: "", floor: 1, capacity: 30, description: "", equipment: [], status: "ACTIVE", image: "/room-placeholder.svg", category: "ห้องเรียน" };
+const roomStatusOptions: { value: AdminRoomInput["status"]; labelKey: "adminAvailable" | "adminInactive" | "adminMaintenance" }[] = [
+  { value: "ACTIVE", labelKey: "adminAvailable" },
+  { value: "INACTIVE", labelKey: "adminInactive" },
+  { value: "MAINTENANCE", labelKey: "adminMaintenance" },
+];
 
 function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
   const { t } = useTranslation();
@@ -91,9 +96,14 @@ export function AdminRoomsPage() {
   const deferredSearch = useDeferredValue(search);
   const [editing, setEditing] = useState<Room>();
   const [detailId, setDetailId] = useState<string>();
+  const [statusRoom, setStatusRoom] = useState<{
+    id: string;
+    code: string;
+    value: AdminRoomInput["status"];
+  }>();
   const query = useAdminClassrooms({ search: deferredSearch || undefined, limit: 100 });
   const detail = useAdminClassroom(detailId);
-  const status = useAction(({ id, active }: { id: string; active: boolean }) => adminApi.setClassroomStatus(id, active ? "INACTIVE" : "AVAILABLE"), t("adminRoomStatusUpdated"));
+  const status = useAction(({ id, value }: { id: string; value: AdminRoomInput["status"] }) => adminApi.setClassroomStatus(id, value), t("adminRoomStatusUpdated"));
   const remove = useAction(adminApi.deactivateClassroom, t("adminRoomDeactivated"));
 
   return (
@@ -108,13 +118,34 @@ export function AdminRoomsPage() {
             { title: t("adminActions"), render: (_, room) => <div className={styles.actions}>
               <Tooltip title={t("adminViewRoom")}><Button size="small" aria-label={t("adminViewRoom")} icon={<Eye size={14} />} onClick={() => setDetailId(room.id)} /></Tooltip>
               <Tooltip title={t("adminEditRoomAction")}><Button size="small" aria-label={t("adminEditRoomAction")} icon={<Pencil size={14} />} onClick={() => setEditing(room)} /></Tooltip>
-              <Tooltip title={t("adminChangeRoomStatus")}><Button size="small" aria-label={t("adminChangeRoomStatus")} icon={<Power size={14} />} onClick={() => status.mutate({ id: room.id, active: room.status === "ACTIVE" })} /></Tooltip>
+              <Tooltip title={t("adminChangeRoomStatus")}><Button size="small" aria-label={t("adminChangeRoomStatus")} icon={<Power size={14} />} onClick={() => setStatusRoom({ id: room.id, code: room.code, value: room.status })} /></Tooltip>
               <Tooltip title={t("adminDeactivateRoom")}><Button size="small" danger aria-label={t("adminDeactivateRoom")} icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: t("adminDeactivateRoomConfirm"), content: room.code, okText: t("adminConfirm"), cancelText: t("adminBack"), okButtonProps: { danger: true }, onOk: () => remove.mutateAsync(room.id) })} /></Tooltip>
             </div> },
           ]} />
         </Panel>
       </QueryState>
       {editing && <RoomEditor room={editing} onClose={() => setEditing(undefined)} />}
+      <Modal
+        open={Boolean(statusRoom)}
+        title={t("adminChangeRoomStatus")}
+        onCancel={() => setStatusRoom(undefined)}
+        okText={t("adminConfirm")}
+        cancelText={t("adminBack")}
+        okButtonProps={{ loading: status.isPending }}
+        onOk={() => statusRoom && status.mutate(
+          { id: statusRoom.id, value: statusRoom.value },
+          { onSuccess: () => setStatusRoom(undefined) },
+        )}
+      >
+        <p>{statusRoom?.code}</p>
+        <Form.Item label={t("adminStatus")}>
+          <Select
+            value={statusRoom?.value}
+            onChange={(value: AdminRoomInput["status"]) => setStatusRoom((current) => current ? { ...current, value } : current)}
+            options={roomStatusOptions.map((option) => ({ value: option.value, label: t(option.labelKey) }))}
+          />
+        </Form.Item>
+      </Modal>
       <Modal open={Boolean(detailId)} title={t("adminRoomDetail")} onCancel={() => setDetailId(undefined)} footer={<Button onClick={() => setDetailId(undefined)}>{t("adminClose")}</Button>}>
         <QueryState isLoading={detail.isLoading} error={detail.error} retry={detail.refetch}>
           {detail.data && <Descriptions column={1} items={[
