@@ -51,13 +51,27 @@
   gap: 18px;
 }
 .welcomeArt {
+  --welcome-art-transform: rotate(-3deg);
   width: 280px;
   height: 145px;
   position: relative;
   flex-shrink: 0;
   opacity: 0.95;
   margin-right: 15px;
-  transform: rotate(-3deg);
+  transform: var(--welcome-art-transform);
+  animation: welcome-art-float 3.6s ease-in-out infinite;
+  will-change: translate;
+}
+
+@keyframes welcome-art-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -8px;
+  }
 }
 .artBoard {
   position: absolute;
@@ -587,7 +601,7 @@
 @media (max-width: 1200px) {
   .welcomeArt {
     width: 220px;
-    transform: scale(0.85);
+    --welcome-art-transform: scale(0.85);
     margin-right: -25px;
   }
   .welcome h2 {
@@ -619,6 +633,12 @@
   }
   .roomImage {
     height: 155px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcomeArt {
+    animation: none;
   }
 }
 @media (max-width: 1000px) {
