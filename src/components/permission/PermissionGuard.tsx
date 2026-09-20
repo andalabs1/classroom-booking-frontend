@@ -14,7 +14,7 @@ export function PermissionGuard({
   if (!user)
     return (
       <Navigate
-        to="/login"
+        to={role === "ADMIN" ? "/admin/login" : "/login"}
         state={{ from: location.pathname + location.search }}
         replace
       />

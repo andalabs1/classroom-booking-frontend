@@ -49,6 +49,7 @@ const AuditLogsPage = lazy(() =>
 );
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/admin/login", element: <LoginPage portal="admin" /> },
   { path: "/register", element: <RegisterPage /> },
   {
     element: <AppLayout />,

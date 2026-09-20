@@ -1,11 +1,12 @@
 import { ThemeToggle } from "../../components/common/ThemeToggle";
 import { fieldLabels } from "../../config/fieldLabels";
-import { App, Alert, Button, Form, Input, Segmented } from "antd";
-import { BookOpen, ArrowRight, Mail, LockKeyhole } from "lucide-react";
+import { App, Alert, Button, Form, Input } from "antd";
+import { BookOpen, ArrowRight, Mail, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAction } from "../../services/queries";
 import { authApi } from "../../api/auth";
 import { useAuth } from "../../stores/authStore";
@@ -30,11 +31,29 @@ const registerSchema = z
   });
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
-export function LoginPage() {
+type LoginPortal = "user" | "admin";
+
+function AuthVisualPanel() {
+  const { t } = useTranslation();
+
+  return (
+    <aside className={styles.visualPanel}>
+      <img className={styles.visualImage} src="/auth-learning-collage.png" alt="" />
+      <div className={styles.visualCopy}>
+        <span>{t("authVisualKicker")}</span>
+        <h2>{t("authVisualTitle")}</h2>
+        <p>{t("authVisualDescription")}</p>
+      </div>
+    </aside>
+  );
+}
+
+export function LoginPage({ portal = "user" }: { portal?: LoginPortal }) {
+  const { t } = useTranslation();
+  const isAdminPortal = portal === "admin";
   const {
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -49,122 +68,128 @@ export function LoginPage() {
   const mutation = useAction((data: LoginValues) => authApi.login(data));
   const { modal } = App.useApp();
   return (
-    <div className={styles.auth}>
+    <div className={`${styles.auth} ${styles.loginAuth} ${isAdminPortal ? styles.adminAuth : ""}`}>
       <ThemeToggle className={styles.themeToggle} />
-      <div className={styles.authCard}>
-        <Link className={styles.logo} to="/rooms">
-          <BookOpen size={25} />
-          Classroom
-        </Link>
-        <span className={styles.eyebrow}>YOUR LEARNING SPACE</span>
-        <h1>ยินดีต้อนรับกลับมา</h1>
-        <p>เข้าสู่ระบบเพื่อค้นหาและจองห้องเรียนของคุณ</p>
-        <div className={styles.demo}>
-          <strong>ทดลองใช้งานระบบ</strong>
-          <Segmented
-            block
-            options={[
-              { label: "นักศึกษา", value: "student" },
-              { label: "ผู้ดูแลระบบ", value: "admin" },
-            ]}
-            onChange={(v) => {
-              setValue("username", `${v}@university.ac.th`);
-              setValue("password", "Demo1234!");
-            }}
-          />
-          <small>รหัสผ่านสำหรับบัญชีตัวอย่าง: Demo1234!</small>
-        </div>
-        <Form
-          layout="vertical"
-          onFinish={handleSubmit((data) =>
-            mutation.mutate(data, {
-              onSuccess: ({ user, token }) => {
-                setSession(user, token);
-                const from = (location.state as { from?: string } | null)?.from;
-                navigate(
-                  from && from.startsWith("/") && !from.startsWith("//")
-                    ? from
-                    : user.role === "ADMIN"
-                      ? "/admin/dashboard"
-                      : "/rooms",
-                );
-              },
-            }),
-          )}
-        >
-          <Form.Item
-            label="ชื่อผู้ใช้หรืออีเมล"
-            required
-            validateStatus={errors.username ? "error" : ""}
-            help={errors.username?.message}
-          >
-            <Controller
-              name="username"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  aria-label={fieldLabels[field.name] ?? field.name}
-                  prefix={<Mail size={16} />}
-                  autoComplete="username"
-                />
+      <main className={styles.loginShell}>
+        <AuthVisualPanel />
+        <section className={styles.loginContent}>
+          <div className={styles.authCard}>
+            <Link className={styles.logo} to="/rooms">
+              <BookOpen size={25} />
+              Classroom
+            </Link>
+            <span className={styles.eyebrow}>{isAdminPortal ? "ADMIN WORKSPACE" : "YOUR LEARNING SPACE"}</span>
+            {isAdminPortal && <span className={styles.portalBadge}><ShieldCheck size={14} /> {t("adminPortal")}</span>}
+            <h1>{isAdminPortal ? t("adminLoginTitle") : t("userLoginTitle")}</h1>
+            <p>{isAdminPortal ? t("adminLoginSubtitle") : t("userLoginSubtitle")}</p>
+            <Form
+              layout="vertical"
+              onFinish={handleSubmit((data) =>
+                mutation.mutate(data, {
+                  onSuccess: ({ user, token }) => {
+                    if ((user.role === "ADMIN") !== isAdminPortal) {
+                      modal.error({
+                        title: t("wrongPortalTitle"),
+                        content: user.role === "ADMIN" ? t("wrongPortalAdmin") : t("wrongPortalUser"),
+                      });
+                      return;
+                    }
+                    setSession(user, token);
+                    const from = (location.state as { from?: string } | null)?.from;
+                    const validFrom = isAdminPortal
+                      ? from?.startsWith("/admin/")
+                      : from?.startsWith("/") && !from.startsWith("//") && !from.startsWith("/admin/");
+                    const destination = validFrom && from
+                      ? from
+                      : isAdminPortal
+                        ? "/admin/dashboard"
+                        : "/rooms";
+                    navigate(destination);
+                  },
+                }),
               )}
-            />
-          </Form.Item>
-          <Form.Item
-            label="รหัสผ่าน"
-            required
-            validateStatus={errors.password ? "error" : ""}
-            help={errors.password?.message}
-          >
-            <Controller
-              name="password"
-              control={control}
-              render={({ field }) => (
-                <Input.Password
-                  {...field}
-                  aria-label={fieldLabels[field.name] ?? field.name}
-                  prefix={<LockKeyhole size={16} />}
-                  autoComplete="current-password"
+            >
+              <Form.Item
+                label="ชื่อผู้ใช้หรืออีเมล"
+                required
+                validateStatus={errors.username ? "error" : ""}
+                help={errors.username?.message}
+              >
+                <Controller
+                  name="username"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      aria-label={fieldLabels[field.name] ?? field.name}
+                      prefix={<Mail size={16} />}
+                      autoComplete="username"
+                    />
+                  )}
                 />
+              </Form.Item>
+              <Form.Item
+                label="รหัสผ่าน"
+                required
+                validateStatus={errors.password ? "error" : ""}
+                help={errors.password?.message}
+              >
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <Input.Password
+                      {...field}
+                      aria-label={fieldLabels[field.name] ?? field.name}
+                      prefix={<LockKeyhole size={16} />}
+                      autoComplete="current-password"
+                    />
+                  )}
+                />
+              </Form.Item>
+              <Button
+                type="link"
+                className={styles.forgot}
+                onClick={() =>
+                  modal.info({
+                    title: "ลืมรหัสผ่าน",
+                    content:
+                      "กรุณาติดต่อผู้ดูแลระบบที่ฝ่ายอาคารสถานที่เพื่อขอความช่วยเหลือในการรีเซ็ตรหัสผ่าน",
+                  })
+                }
+              >
+                ลืมรหัสผ่าน
+              </Button>
+              {mutation.error && (
+                <Alert type="error" title={mutation.error.message} />
               )}
-            />
-          </Form.Item>
-          <Button
-            type="link"
-            className={styles.forgot}
-            onClick={() =>
-              modal.info({
-                title: "ลืมรหัสผ่าน",
-                content:
-                  "สำหรับระบบต้นแบบ ใช้รหัสผ่าน Demo1234! กับบัญชีตัวอย่าง หากเป็นบัญชีที่ลงทะเบียนใหม่ กรุณาติดต่อผู้ดูแลระบบที่ฝ่ายอาคารสถานที่เพื่อขอความช่วยเหลือ",
-              })
-            }
-          >
-            ลืมรหัสผ่าน
-          </Button>
-          {mutation.error && (
-            <Alert type="error" title={mutation.error.message} />
-          )}
-          <Button
-            block
-            type="primary"
-            htmlType="submit"
-            loading={mutation.isPending}
-          >
-            เข้าสู่ระบบ <ArrowRight size={17} />
-          </Button>
-        </Form>
-        <p className={styles.switch}>
-          ยังไม่มีบัญชี? <Link to="/register">สมัครสมาชิก</Link>
-        </p>
-        <Link className={styles.browse} to="/rooms">
-          ดูห้องเรียนก่อนเข้าสู่ระบบ
-        </Link>
-      </div>
-      <div className={styles.caption}>
-        Classroom Booking System · พื้นที่สำหรับทุกการเรียนรู้
-      </div>
+              <Button
+                block
+                type="primary"
+                htmlType="submit"
+                loading={mutation.isPending}
+              >
+                เข้าสู่ระบบ <ArrowRight size={17} />
+              </Button>
+            </Form>
+            {isAdminPortal ? (
+              <p className={styles.switch}>
+                {t("userPortalQuestion")} <Link to="/login">{t("userPortalLink")}</Link>
+              </p>
+            ) : (
+              <p className={styles.switch}>
+                {t("noAccountQuestion")} <Link to="/register">{t("registerLink")}</Link>
+              </p>
+            )}
+            <Link className={styles.browse} to="/rooms">
+              {t("browseRooms")}
+            </Link>
+          </div>
+          <div className={styles.caption}>
+            {isAdminPortal ? "Classroom Booking System · ADMIN" : t("authCaption")}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
@@ -208,67 +233,74 @@ export function RegisterPage() {
     { name: "confirmPassword", label: "Confirm Password" },
   ];
   return (
-    <div className={styles.auth}>
+    <div className={`${styles.auth} ${styles.loginAuth} ${styles.registerAuth}`}>
       <ThemeToggle className={styles.themeToggle} />
-      <div className={`${styles.authCard} ${styles.register}`}>
-        <Link className={styles.logo} to="/rooms">
-          <BookOpen size={25} />
-          Classroom
-        </Link>
-        <h1>สมัครสมาชิก</h1>
-        <p>เริ่มต้นจองพื้นที่การเรียนรู้ของคุณ</p>
-        <Form
-          layout="vertical"
-          onFinish={handleSubmit((data) =>
-            mutation.mutate(data, { onSuccess: () => navigate("/login") }),
-          )}
-        >
-          <div className={styles.registerGrid}>
-            {fields.map(({ name, label }) => (
-              <Form.Item
-                key={name}
-                label={label}
-                required
-                validateStatus={errors[name] ? "error" : ""}
-                help={errors[name]?.message}
+      <main className={styles.loginShell}>
+        <AuthVisualPanel />
+        <section className={`${styles.loginContent} ${styles.registerContent}`}>
+          <div className={`${styles.authCard} ${styles.register}`}>
+            <Link className={styles.logo} to="/rooms">
+              <BookOpen size={25} />
+              Classroom
+            </Link>
+            <span className={styles.eyebrow}>YOUR LEARNING SPACE</span>
+            <h1>สมัครสมาชิก</h1>
+            <p>เริ่มต้นจองพื้นที่การเรียนรู้ของคุณ</p>
+            <Form
+              layout="vertical"
+              onFinish={handleSubmit((data) =>
+                mutation.mutate(data, { onSuccess: () => navigate("/login") }),
+              )}
+            >
+              <div className={styles.registerGrid}>
+                {fields.map(({ name, label }) => (
+                  <Form.Item
+                    key={name}
+                    label={label}
+                    required
+                    validateStatus={errors[name] ? "error" : ""}
+                    help={errors[name]?.message}
+                  >
+                    <Controller
+                      control={control}
+                      name={name}
+                      render={({ field }) =>
+                        name.toLowerCase().includes("password") ? (
+                          <Input.Password
+                            {...field}
+                            aria-label={fieldLabels[field.name] ?? field.name}
+                            autoComplete="new-password"
+                          />
+                        ) : (
+                          <Input
+                            {...field}
+                            aria-label={fieldLabels[field.name] ?? field.name}
+                          />
+                        )
+                      }
+                    />
+                  </Form.Item>
+                ))}
+              </div>
+              {mutation.error && (
+                <Alert type="error" title={mutation.error.message} />
+              )}
+              <Button
+                block
+                htmlType="submit"
+                type="primary"
+                loading={mutation.isPending}
               >
-                <Controller
-                  control={control}
-                  name={name}
-                  render={({ field }) =>
-                    name.toLowerCase().includes("password") ? (
-                      <Input.Password
-                        {...field}
-                        aria-label={fieldLabels[field.name] ?? field.name}
-                        autoComplete="new-password"
-                      />
-                    ) : (
-                      <Input
-                        {...field}
-                        aria-label={fieldLabels[field.name] ?? field.name}
-                      />
-                    )
-                  }
-                />
-              </Form.Item>
-            ))}
+                สมัครสมาชิก
+              </Button>
+            </Form>
+            <p className={styles.switch}>
+              มีบัญชีแล้ว? <Link to="/login">เข้าสู่ระบบ</Link>
+            </p>
           </div>
-          {mutation.error && (
-            <Alert type="error" title={mutation.error.message} />
-          )}
-          <Button
-            block
-            htmlType="submit"
-            type="primary"
-            loading={mutation.isPending}
-          >
-            สมัครสมาชิก
-          </Button>
-        </Form>
-        <p className={styles.switch}>
-          มีบัญชีแล้ว? <Link to="/login">เข้าสู่ระบบ</Link>
-        </p>
-      </div>
+          <div className={styles.caption}>Classroom Booking System · พื้นที่สำหรับทุกการเรียนรู้</div>
+        </section>
+      </main>
     </div>
   );
 }
