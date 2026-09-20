@@ -1,29 +1,58 @@
-import { useState } from "react";
-import { App, Button, DatePicker, Select } from "antd";
+import { useMemo, useState } from "react";
+import { App, Button, DatePicker, Segmented, Select } from "antd";
 import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
 import dayjs from "dayjs";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { classroomsApi } from "../../api/classrooms";
 import { useClassrooms, useClassroomSchedule } from "../../services/queries";
 import { PageHeader, Panel, QueryState } from "../../components/common/Common";
 import { overlaps } from "../../utils/bookingRules";
-import { bookingLabels } from "../../constants/bookingStatus";
+import { getBookingLabels } from "../../constants/bookingStatus";
+import { getThaiImportantDays } from "../../constants/thaiImportantDays";
 import styles from "./Booking.module.css";
+
+type ScheduleView = "day" | "week" | "month";
+
+function getScheduleRange(date: dayjs.Dayjs, view: ScheduleView) {
+  const start = view === "day" ? date.startOf("day") : date.startOf(view);
+  const end = view === "day" ? date.endOf("day") : date.endOf(view);
+  return { start, end };
+}
+
 export function RoomSchedulePage() {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const [roomId, setRoomId] = useState(params.get("room") || "");
   const [date, setDate] = useState(dayjs());
+  const [view, setView] = useState<ScheduleView>("day");
   const [checkingSlot, setCheckingSlot] = useState("");
   const roomsQuery = useClassrooms({ limit: 100 });
   const navigate = useNavigate();
   const { message } = App.useApp();
   const rooms = roomsQuery.data?.items ?? [];
   const selectedRoomId = roomId || rooms[0]?.id || "";
+  const range = useMemo(() => getScheduleRange(date, view), [date, view]);
+  const visibleDays = useMemo(
+    () =>
+      Array.from(
+        { length: range.end.diff(range.start, "day") + 1 },
+        (_, index) => range.start.add(index, "day"),
+      ),
+    [range.end, range.start],
+  );
+  const calendarDays = useMemo(
+    () =>
+      view === "month"
+        ? [...Array<dayjs.Dayjs | null>(range.start.day()).fill(null), ...visibleDays]
+        : visibleDays,
+    [range.start, view, visibleDays],
+  );
   const scheduleQuery = useClassroomSchedule(
     selectedRoomId
       ? {
-          startAt: date.startOf("day").toISOString(),
-          endAt: date.endOf("day").toISOString(),
+          startAt: range.start.toISOString(),
+          endAt: range.end.add(1, "day").startOf("day").toISOString(),
           classroomIds: [selectedRoomId],
         }
       : undefined,
@@ -32,6 +61,16 @@ export function RoomSchedulePage() {
   const schedule = scheduleQuery.data?.rooms.find(
     (item) => item.id === selectedRoomId,
   );
+  const bookingLabels = getBookingLabels(t);
+  const weekdayLabels = [
+    t("roomScheduleSunday"),
+    t("roomScheduleMonday"),
+    t("roomScheduleTuesday"),
+    t("roomScheduleWednesday"),
+    t("roomScheduleThursday"),
+    t("roomScheduleFriday"),
+    t("roomScheduleSaturday"),
+  ];
   const selectSlot = async (start: string, end: string) => {
     const slotId = `${start}-${end}`;
     setCheckingSlot(slotId);
@@ -41,7 +80,7 @@ export function RoomSchedulePage() {
         endAt: dayjs(`${date.format("YYYY-MM-DD")}T${end}`).toISOString(),
       });
       if (!result.available) {
-        void message.error("ช่วงเวลานี้มีผู้จองแล้ว กรุณาเลือกเวลาอื่น");
+        void message.error(t("roomScheduleConflict"));
         void scheduleQuery.refetch();
         return;
       }
@@ -57,8 +96,8 @@ export function RoomSchedulePage() {
   return (
     <>
       <PageHeader
-        title="ตารางการใช้ห้อง"
-        subtitle="ตรวจสอบเวลาว่าง และเลือกช่วงเวลาที่ต้องการใช้งาน"
+        title={t("roomScheduleTitle")}
+        subtitle={t("roomScheduleSubtitle")}
       />
       <QueryState
         isLoading={roomsQuery.isLoading || scheduleQuery.isLoading}
@@ -71,7 +110,7 @@ export function RoomSchedulePage() {
         <Panel>
           <div className={styles.scheduleTools}>
             <Select
-              aria-label="ห้องเรียน"
+              aria-label={t("roomScheduleSelectRoom")}
               value={selectedRoomId || undefined}
               onChange={setRoomId}
               options={rooms.map((r) => ({
@@ -80,45 +119,60 @@ export function RoomSchedulePage() {
               }))}
             />
             <Button
-              aria-label="วันก่อนหน้า"
+              aria-label={t("roomSchedulePrevious")}
               icon={<ArrowLeft size={16} />}
-              onClick={() => setDate(date.subtract(1, "day"))}
+              onClick={() => setDate(date.subtract(1, view))}
             />
             <DatePicker
-              aria-label="วันที่"
+              aria-label={t("roomScheduleDate")}
               value={date}
               allowClear={false}
               onChange={(value) => value && setDate(value)}
-              format="DD MMM YYYY"
+              picker={view === "month" ? "month" : undefined}
+              format={view === "month" ? "MMM YYYY" : "DD MMM YYYY"}
             />
             <Button
-              aria-label="วันถัดไป"
+              aria-label={t("roomScheduleNext")}
               icon={<ArrowRight size={16} />}
-              onClick={() => setDate(date.add(1, "day"))}
+              onClick={() => setDate(date.add(1, view))}
             />
-            <Button onClick={() => setDate(dayjs())}>วันนี้</Button>
+            <Button onClick={() => setDate(dayjs())}>{t("roomScheduleToday")}</Button>
+            <Segmented
+              aria-label={t("roomScheduleView")}
+              value={view}
+              onChange={(value) => setView(value as ScheduleView)}
+              options={[
+                { value: "day", label: t("adminDaily") },
+                { value: "week", label: t("adminWeekly") },
+                { value: "month", label: t("adminMonthly") },
+              ]}
+            />
           </div>
           <h2>
             {room?.name} {room?.code}
           </h2>
           <p className={styles.hint}>
-            {room?.building} · ชั้น {room?.floor} · {room?.capacity} ที่นั่ง
+            {room?.building} · {t("roomScheduleFloor")} {room?.floor} · {room?.capacity} {t("roomScheduleSeats")}
           </p>
           <div className={styles.legend}>
             <span>
               <i />
-              ว่าง
+              {t("roomScheduleAvailable")}
             </span>
             <span>
               <i />
-              ถูกจอง
+              {t("roomScheduleBooked")}
             </span>
             <span>
               <i />
-              อยู่ระหว่างอนุมัติ
+              {t("roomSchedulePending")}
+            </span>
+            <span>
+              <i className={styles.importantDot} />
+              {t("roomScheduleImportantDay")}
             </span>
           </div>
-          {Array.from({ length: 12 }, (_, i) => {
+          {view === "day" ? Array.from({ length: 12 }, (_, i) => {
             const start = `${String(i + 8).padStart(2, "0")}:00`;
             const end = `${String(i + 9).padStart(2, "0")}:00`;
             const booking = schedule?.bookings.find(
@@ -147,7 +201,7 @@ export function RoomSchedulePage() {
                   </div>
                 ) : room?.status !== "ACTIVE" || past ? (
                   <div className={`${styles.occupied} ${styles.unavailable}`}>
-                    {past ? "พ้นช่วงเวลาจอง" : "ไม่พร้อมใช้งาน"}
+                    {past ? t("roomSchedulePast") : t("roomScheduleUnavailable")}
                   </div>
                 ) : (
                   <button
@@ -156,15 +210,64 @@ export function RoomSchedulePage() {
                   >
                     <span>
                       {checkingSlot === `${start}-${end}`
-                        ? "กำลังตรวจสอบ..."
-                        : "ว่าง · จองช่วงเวลานี้"}
+                        ? t("roomScheduleChecking")
+                        : t("roomScheduleBookSlot")}
                     </span>
                     <Plus size={16} />
                   </button>
                 )}
               </div>
             );
-          })}
+          }) : (
+            <div className={styles.scheduleCalendarScroll}>
+              <div className={styles.scheduleCalendar}>
+                {weekdayLabels.map((label) => (
+                  <span className={styles.scheduleWeekday} key={label}>{label}</span>
+                ))}
+                {calendarDays.map((day, index) => {
+                  if (!day) return <span aria-hidden="true" className={styles.scheduleCalendarBlank} key={`blank-${index}`} />;
+                  const bookings = schedule?.bookings.filter((booking) =>
+                    dayjs(booking.startAt).isSame(day, "day"),
+                  ) ?? [];
+                  const isToday = day.isSame(dayjs(), "day");
+                  const isWeekend = day.day() === 0 || day.day() === 6;
+                  const importantDays = getThaiImportantDays(day.format("YYYY-MM-DD"));
+                  return (
+                    <button
+                      className={`${styles.scheduleDayCard} ${isToday ? styles.scheduleToday : ""} ${isWeekend ? styles.scheduleWeekend : ""}`}
+                      key={day.format("YYYY-MM-DD")}
+                      type="button"
+                      onClick={() => {
+                        setDate(day);
+                        setView("day");
+                      }}
+                      title={t("roomScheduleOpenDaily")}
+                    >
+                      <span className={styles.scheduleDayDate}>{day.date()}</span>
+                      {importantDays.map((importantDay) => (
+                        <span className={styles.scheduleImportantDay} key={importantDay.labelKey}>
+                          {t(importantDay.labelKey)}
+                        </span>
+                      ))}
+                      {room?.status !== "ACTIVE" ? (
+                        <span className={styles.unavailable}>{t("roomScheduleUnavailable")}</span>
+                      ) : bookings.length ? (
+                        <span className={styles.scheduleEvents}>
+                          {bookings.map((booking) => (
+                            <span className={booking.status === "PENDING" ? styles.scheduleEventPending : styles.scheduleEvent} key={booking.id}>
+                              {dayjs(booking.startAt).format("HH:mm")}–{dayjs(booking.endAt).format("HH:mm")} · {bookingLabels[booking.status]}
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className={styles.scheduleFree}>{t("roomScheduleAvailable")}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </Panel>
       </QueryState>
     </>

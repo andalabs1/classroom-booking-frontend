@@ -90,6 +90,12 @@
   font-weight: 600;
   margin: 0 0 15px;
 }
+.chartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
 .reportHint {
   color: var(--text-muted);
   font-size: 14px;
@@ -119,6 +125,10 @@
     grid-template-columns: 1fr;
   }
   .filters {
+    flex-direction: column;
+  }
+  .chartHeader {
+    align-items: stretch;
     flex-direction: column;
   }
 }

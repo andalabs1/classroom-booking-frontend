@@ -1,4 +1,5 @@
-import { theme } from "antd";
+import { Segmented, theme } from "antd";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useThemeStore } from "../../stores/themeStore";
 import ReactECharts from "echarts-for-react/esm/core";
@@ -26,6 +27,41 @@ import { getBookingLabels } from "../../constants/bookingStatus";
 import { colors } from "../../config/themeConfig";
 import { Panel } from "../../components/common/Common";
 import styles from "./Admin.module.css";
+
+type AnalyticsGranularity = "day" | "week" | "month";
+
+function getTimeline(
+  bookings: Booking[],
+  start: string,
+  end: string,
+  granularity: AnalyticsGranularity,
+) {
+  const unit = granularity === "day" ? "day" : granularity;
+  const first = dayjs(start).startOf(unit);
+  const last = dayjs(end).startOf(unit);
+  const totals = new Map<string, number>();
+
+  for (let cursor = first; !cursor.isAfter(last, unit); cursor = cursor.add(1, unit)) {
+    totals.set(cursor.format("YYYY-MM-DD"), 0);
+  }
+
+  for (const booking of bookings) {
+    const bucket = dayjs(booking.date).startOf(unit).format("YYYY-MM-DD");
+    if (totals.has(bucket)) totals.set(bucket, (totals.get(bucket) ?? 0) + 1);
+  }
+
+  return [...totals.entries()].map(([key, value]) => {
+    const date = dayjs(key);
+    const label =
+      granularity === "week"
+        ? `${date.format("DD MMM")}–${date.add(6, "day").format("DD MMM")}`
+        : granularity === "month"
+          ? date.format("MMM YYYY")
+          : date.format("DD MMM");
+    return { label, value };
+  });
+}
+
 export function Analytics({
   bookings,
   rooms,
@@ -40,17 +76,13 @@ export function Analytics({
   report?: boolean;
 }) {
   const { t } = useTranslation();
+  const [granularity, setGranularity] = useState<AnalyticsGranularity>("day");
   const bookingLabels = getBookingLabels(t);
   const { token } = theme.useToken();
   const dark = useThemeStore((state) => state.mode === "dark");
-  const days = Array.from(
-    {
-      length: Math.min(
-        366,
-        Math.max(1, dayjs(end).diff(dayjs(start), "day") + 1),
-      ),
-    },
-    (_, i) => dayjs(start).add(i, "day").format("YYYY-MM-DD"),
+  const timeline = useMemo(
+    () => getTimeline(bookings, start, end, granularity),
+    [bookings, end, granularity, start],
   );
   const top = rooms
     .map((r) => ({
@@ -81,7 +113,7 @@ export function Analytics({
     xAxis: {
       axisLabel: { color: token.colorTextSecondary },
       type: "category",
-      data: days.map((d) => dayjs(d).format("DD MMM")),
+      data: timeline.map((item) => item.label),
       axisLine: { show: false },
       axisTick: { show: false },
     },
@@ -95,7 +127,7 @@ export function Analytics({
       {
         type: "line",
         smooth: true,
-        data: days.map((d) => bookings.filter((b) => b.date === d).length),
+        data: timeline.map((item) => item.value),
         areaStyle: { color: dark ? "#362746" : "#f4ecfc" },
         lineStyle: { width: 3 },
         symbolSize: 6,
@@ -189,7 +221,19 @@ export function Analytics({
     <>
       <div className={styles.charts}>
         <Panel>
-          <h2 className={styles.chartTitle}>{t("adminTotalBookings")}</h2>
+          <div className={styles.chartHeader}>
+            <h2 className={styles.chartTitle}>{t("adminBookingsOverTime")}</h2>
+            <Segmented
+              aria-label={t("adminTrendGranularity")}
+              value={granularity}
+              onChange={(value) => setGranularity(value as AnalyticsGranularity)}
+              options={[
+                { value: "day", label: t("adminDaily") },
+                { value: "week", label: t("adminWeekly") },
+                { value: "month", label: t("adminMonthly") },
+              ]}
+            />
+          </div>
           <ReactECharts
             echarts={echarts}
             option={trend}

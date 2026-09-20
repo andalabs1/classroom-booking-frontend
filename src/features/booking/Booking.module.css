@@ -66,6 +66,9 @@
 .legend span:nth-child(3) i {
   background: #dcc06c;
 }
+.legend .importantDot {
+  background: #d6659b;
+}
 .slot {
   display: grid;
   grid-template-columns: 145px 1fr;
@@ -108,6 +111,87 @@
 }
 .unavailable {
   background: var(--surface-subtle);
+  color: var(--text-muted);
+}
+.scheduleCalendarScroll {
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+.scheduleCalendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(115px, 1fr));
+  gap: 8px;
+  min-width: 820px;
+}
+.scheduleWeekday {
+  padding: 7px 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.scheduleCalendarBlank {
+  min-height: 132px;
+  border: 1px solid transparent;
+}
+.scheduleDayCard {
+  min-height: 132px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.scheduleDayCard:hover {
+  border-color: var(--text-accent);
+  background: var(--purple-soft);
+}
+.scheduleToday {
+  border-color: var(--text-accent);
+}
+.scheduleWeekend {
+  background: var(--surface-subtle);
+}
+.scheduleDayDate {
+  display: block;
+  margin-bottom: 8px;
+  font: 600 14px Manrope, sans-serif;
+}
+.scheduleImportantDay {
+  display: block;
+  margin: -2px 0 7px;
+  overflow: hidden;
+  color: #b34378;
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scheduleEvents {
+  display: grid;
+  gap: 6px;
+}
+.scheduleEvent,
+.scheduleEventPending,
+.scheduleFree {
+  display: block;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.scheduleEvent {
+  background: var(--purple-soft);
+  color: var(--text-accent);
+}
+.scheduleEventPending {
+  background: var(--yellow-soft);
+  color: var(--text-warning);
+}
+.scheduleFree {
   color: var(--text-muted);
 }
 .summary {
