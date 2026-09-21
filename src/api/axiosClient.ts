@@ -2,7 +2,8 @@ import axios from 'axios'
 import { getAuthStore, type AuthPortal } from '../stores/authStore'
 
 const clientConfig = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL || 'https://classroom-booking-backend.vercel.app/api',
   timeout: 15000,
 }
 
