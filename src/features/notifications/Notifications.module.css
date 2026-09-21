@@ -1,0 +1,162 @@
+.tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.list li + li {
+  margin-top: 8px;
+}
+.list li {
+  animation: notification-enter 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: calc(var(--notification-index) * 45ms);
+}
+.item {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+.item:hover {
+  background: var(--surface-subtle);
+  border-color: var(--text-accent);
+  transform: translateX(-3px);
+}
+.item:disabled {
+  cursor: wait;
+}
+.unread {
+  background: var(--purple-soft);
+}
+.bellActive svg {
+  transform-origin: 50% 15%;
+  animation: bell-ring 2.8s ease-in-out 2;
+}
+.badgeActive :global(.ant-badge-count) {
+  animation: badge-pop 0.38s cubic-bezier(0.2, 1.8, 0.4, 1);
+}
+.icon {
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--text-accent);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.details strong {
+  color: var(--text-primary);
+  font-size: 15px;
+}
+.details small {
+  font-size: 12px;
+}
+.approved {
+  color: var(--green);
+  background: var(--green-soft);
+}
+.rejected,
+.cancelled {
+  color: #e06f7d;
+  background: var(--pink-soft);
+}
+.reminder {
+  color: var(--text-warning);
+  background: var(--yellow-soft);
+}
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-accent);
+  margin-left: 7px;
+  vertical-align: middle;
+  animation: unread-pulse 1.8s ease-in-out 3;
+}
+@keyframes notification-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes bell-ring {
+  0%,
+  86%,
+  100% {
+    transform: rotate(0);
+  }
+  89% {
+    transform: rotate(14deg);
+  }
+  92% {
+    transform: rotate(-12deg);
+  }
+  95% {
+    transform: rotate(8deg);
+  }
+  98% {
+    transform: rotate(-4deg);
+  }
+}
+@keyframes badge-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes unread-pulse {
+  50% {
+    opacity: 0.38;
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--text-accent) 16%, transparent);
+  }
+}
+.empty {
+  padding-top: 48px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+@media (max-width: 480px) {
+  .drawer :global(.ant-drawer-body) {
+    padding: 16px;
+  }
+}
