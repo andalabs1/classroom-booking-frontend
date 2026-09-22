@@ -3,6 +3,9 @@ import type { ApiResponse } from './types'
 
 export type UploadedImage = { key: string; url: string }
 
+const R2_PUBLIC_BASE_URL =
+  import.meta.env.VITE_R2_PUBLIC_BASE_URL || 'https://pub-8f9cd5fcc337496695e7cca26b3e123b.r2.dev'
+
 function dataOrThrow<T>(response: ApiResponse<T>): T {
   if (!response.success) throw new Error(response.message ?? 'ดำเนินการไม่สำเร็จ')
   return response.data
@@ -22,14 +25,21 @@ export const uploadsApi = {
   },
 }
 
-export function localImageKey(url: string | undefined) {
+const KEY_PATTERN = /^[0-9a-f-]+\.(jpg|png|webp|gif)$/i
+
+export function uploadedImageKey(url: string | undefined) {
   if (!url) return null
   try {
-    const baseUrl = axiosClient.defaults.baseURL
-    const imageUrl = new URL(url)
-    if (baseUrl && imageUrl.origin !== new URL(baseUrl).origin) return null
-    return imageUrl.pathname.match(/\/assets\/([^/]+)$/)?.[1] ?? null
+    const imageUrl = new URL(url, window.location.origin)
+    const lastSegment = imageUrl.pathname.split('/').filter(Boolean).pop() ?? ''
+    if (KEY_PATTERN.test(lastSegment)) return lastSegment
+    return null
   } catch {
     return null
   }
 }
+
+// Backwards-compatible alias: previously only local /assets/<key> URLs were supported.
+export const localImageKey = uploadedImageKey
+
+export { R2_PUBLIC_BASE_URL }
