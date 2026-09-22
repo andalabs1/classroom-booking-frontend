@@ -3,7 +3,7 @@ import { App, Button, Descriptions, Form, Image, Input, InputNumber, Modal, Sele
 import { useTranslation } from "react-i18next";
 import { Eye, Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { adminApi, type AdminRoomInput } from "../../api/admin";
-import { localImageKey, uploadsApi } from "../../api/uploads";
+import { uploadedImageKey, uploadsApi } from "../../api/uploads";
 import { useAction, useAdminClassroom, useAdminClassrooms } from "../../services/queries";
 import type { Room } from "../../types";
 import { equipmentOptions } from "../../constants/bookingStatus";
@@ -81,7 +81,7 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
               <Button loading={uploading}>{t("adminUploadImage")}</Button>
             </Upload>
             {imageUrl && imageUrl !== "/room-placeholder.svg" && <Image width={96} height={64} preview src={imageUrl} alt={t("adminImagePreview")} className={styles.imagePreview} />}
-            {localImageKey(imageUrl) && <Button danger loading={removeImage.isPending} onClick={() => removeImage.mutate(localImageKey(imageUrl)!, { onSuccess: () => form.setFieldValue("image", "/room-placeholder.svg") })}>{t("adminDeleteUploadedImage")}</Button>}
+            {uploadedImageKey(imageUrl) && <Button danger loading={removeImage.isPending} onClick={() => removeImage.mutate(uploadedImageKey(imageUrl)!, { onSuccess: () => form.setFieldValue("image", "/room-placeholder.svg") })}>{t("adminDeleteUploadedImage")}</Button>}
           </div>
         </div>
       </Form>

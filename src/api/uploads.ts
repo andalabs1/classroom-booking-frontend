@@ -39,7 +39,4 @@ export function uploadedImageKey(url: string | undefined) {
   }
 }
 
-// Backwards-compatible alias: previously only local /assets/<key> URLs were supported.
-export const localImageKey = uploadedImageKey
-
 export { R2_PUBLIC_BASE_URL }
