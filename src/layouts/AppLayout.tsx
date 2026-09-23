@@ -148,7 +148,7 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
             <strong>{active ? t(active.key) : t('details')}</strong>
           </div>
           <div className={styles.headerRight}>
-            {!admin && user && <NotificationBell key={user.id} user={user} />}
+            {user && <NotificationBell key={`${portal}-${user.id}`} user={user} portal={portal} />}
             <ThemeToggle />
             <Tooltip title={t('languageToggle')}>
               <Button

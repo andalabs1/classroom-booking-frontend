@@ -1,4 +1,5 @@
-import { userAxiosClient as axiosClient } from './axiosClient'
+import { authenticatedClient } from './axiosClient'
+import type { AuthPortal } from '../stores/authStore'
 import type { ApiResponse } from './types'
 import type { BookingNotification } from '../types'
 
@@ -50,7 +51,8 @@ function toNotification(item: ApiNotification): BookingNotification {
 }
 
 export const notificationsApi = {
-  async list(filters: NotificationFilters = {}) {
+  async list(portal: AuthPortal, filters: NotificationFilters = {}) {
+    const axiosClient = authenticatedClient(portal)
     const response = await axiosClient.get<ApiListResponse<ApiNotification[]>>('/notifications', {
       params: {
         ...filters,
@@ -63,17 +65,20 @@ export const notificationsApi = {
     }
   },
 
-  async unreadCount() {
+  async unreadCount(portal: AuthPortal) {
+    const axiosClient = authenticatedClient(portal)
     const response = await axiosClient.get<ApiResponse<{ count: number }>>('/notifications/unread-count')
     return dataOrThrow(response.data).count
   },
 
-  async markAllRead() {
+  async markAllRead(portal: AuthPortal) {
+    const axiosClient = authenticatedClient(portal)
     const response = await axiosClient.patch<ApiResponse<{ updated: number }>>('/notifications/read-all')
     return dataOrThrow(response.data)
   },
 
-  async markRead(id: string) {
+  async markRead(portal: AuthPortal, id: string) {
+    const axiosClient = authenticatedClient(portal)
     const response = await axiosClient.patch<ApiResponse<ApiNotification>>(`/notifications/${encodeURIComponent(id)}/read`)
     return toNotification(dataOrThrow(response.data))
   },

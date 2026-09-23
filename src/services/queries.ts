@@ -13,6 +13,7 @@ import {
 import { usersApi } from "../api/users";
 import { adminApi, type AdminFilters, type ReportFilters } from "../api/admin";
 import { mockService } from "./mockService";
+import type { AuthPortal } from "../stores/authStore";
 export function useDatabase() {
   return useQuery({ queryKey: ["database"], queryFn: mockService.database });
 }
@@ -63,17 +64,17 @@ export function useBooking(id: string | undefined) {
   });
 }
 
-export function useNotifications(filters: NotificationFilters = {}) {
+export function useNotifications(portal: AuthPortal, filters: NotificationFilters = {}) {
   return useQuery({
-    queryKey: ["notifications", filters],
-    queryFn: () => notificationsApi.list(filters),
+    queryKey: ["notifications", portal, filters],
+    queryFn: () => notificationsApi.list(portal, filters),
   });
 }
 
-export function useUnreadNotificationCount() {
+export function useUnreadNotificationCount(portal: AuthPortal) {
   return useQuery({
-    queryKey: ["notifications", "unread-count"],
-    queryFn: notificationsApi.unreadCount,
+    queryKey: ["notifications", portal, "unread-count"],
+    queryFn: () => notificationsApi.unreadCount(portal),
   });
 }
 

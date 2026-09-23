@@ -21,18 +21,19 @@ import {
 } from "../../services/queries";
 import { QueryState } from "../../components/common/Common";
 import type { BookingNotification, User } from "../../types";
+import type { AuthPortal } from "../../stores/authStore";
 import styles from "./Notifications.module.css";
 
-export function NotificationBell({ user }: { user: User }) {
+export function NotificationBell({ user, portal }: { user: User; portal: AuthPortal }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("all");
   const navigate = useNavigate();
-  const query = useNotifications({ limit: 100 });
-  const unreadQuery = useUnreadNotificationCount();
+  const query = useNotifications(portal, { limit: 100 });
+  const unreadQuery = useUnreadNotificationCount(portal);
   const read = useAction(async (id: string | undefined) => {
-    if (id) await notificationsApi.markRead(id);
-    else await notificationsApi.markAllRead();
+    if (id) await notificationsApi.markRead(portal, id);
+    else await notificationsApi.markAllRead(portal);
   });
   const items = query.data?.items ?? [];
   const unread = unreadQuery.data ?? 0;
