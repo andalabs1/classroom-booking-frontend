@@ -13,6 +13,9 @@ const statuses: User["status"][] = ["ACTIVE", "INACTIVE", "SUSPENDED"];
 const statusLabelKeys: Record<User["status"], string> = { ACTIVE: "adminUserActive", INACTIVE: "adminUserInactive", SUSPENDED: "adminUserSuspended" };
 type UserValues = AdminUserInput & { password?: string };
 
+/**
+ * สร้างหรือแก้ผู้ใช้; การแก้เดิมบันทึกโปรไฟล์ role และ status ผ่านหลาย endpoint ตามลำดับ
+ */
 function UserEditor({ user, onClose }: { user?: AdminUser; onClose: () => void }) {
   const { t } = useTranslation();
   const statusLabels = Object.fromEntries(statuses.map((status) => [status, t(statusLabelKeys[status])])) as Record<User["status"], string>;
@@ -44,6 +47,9 @@ function UserEditor({ user, onClose }: { user?: AdminUser; onClose: () => void }
   );
 }
 
+/**
+ * ค้นหาผู้ใช้และจัดการรายละเอียด สถานะ การปิดบัญชี และรีเซ็ตรหัสผ่านผ่าน admin API
+ */
 export function AdminUsersPage() {
   const { t } = useTranslation();
   const statusLabels = Object.fromEntries(statuses.map((status) => [status, t(statusLabelKeys[status])])) as Record<User["status"], string>;

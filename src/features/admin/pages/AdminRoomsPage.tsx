@@ -18,6 +18,9 @@ const roomStatusOptions: { value: AdminRoomInput["status"]; labelKey: "adminAvai
   { value: "MAINTENANCE", labelKey: "adminMaintenance" },
 ];
 
+/**
+ * ฟอร์มสร้างหรือแก้ห้องที่อัปโหลด/ลบรูปผ่าน storage API และใช้ URL รูปในข้อมูลห้อง
+ */
 function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
   const { t } = useTranslation();
   const [form] = Form.useForm<Room>();
@@ -26,6 +29,10 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
   const imageUrl = Form.useWatch("image", form);
   const save = useAction((values: Room) => room.id ? adminApi.updateClassroom(room.id, values) : adminApi.createClassroom(values), room.id ? t("adminRoomSaved") : t("adminRoomAdded"));
   const removeImage = useAction(uploadsApi.deleteImage, t("adminImageDeleted"));
+  /**
+   * ตรวจ MIME และขนาด 5 MB ก่อนอัปโหลดเอง แล้วใส่ URL ที่ได้ลงฟอร์ม
+   * คืน false เพื่อหยุด auto-upload ของ Ant Design หรือ LIST_IGNORE เมื่อไฟล์ไม่ผ่าน
+   */
   const beforeUpload: UploadProps["beforeUpload"] = (file) => {
     const accepted = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!accepted.includes(file.type)) {
@@ -36,6 +43,7 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
       void message.error(t("adminImageSizeError"));
       return Upload.LIST_IGNORE;
     }
+    // อัปโหลดรูปทันทีแยกจากการบันทึกห้อง; ฟอร์มเก็บเฉพาะ URL ที่ API คืนมา
     setUploading(true);
     void uploadsApi
       .uploadImage(file)
@@ -89,6 +97,9 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
   );
 }
 
+/**
+ * ค้นหาห้อง admin พร้อมสร้าง/แก้ข้อมูล เปลี่ยนสถานะ ปิดห้อง และเปิดประวัติรายห้อง
+ */
 export function AdminRoomsPage() {
   const { t } = useTranslation();
   const { modal } = App.useApp();

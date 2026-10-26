@@ -1,5 +1,9 @@
 import { z } from "zod";
 type Translate = (key: string) => string;
+/**
+ * สร้าง Zod schema ของ draft พร้อมข้อความตามตัวแปล t
+ * ตรวจความครบถ้วน/รูปแบบฟิลด์; กติกาเวลา ความจุ และเวลาว่างตรวจในขั้นตอนจองและ backend เพิ่ม
+ */
 export const createBookingSchema = (t: Translate) => z.object({
   roomId: z.string().min(1, t("bookingValidationRoom")),
   date: z.string().min(1, t("bookingValidationDate")),

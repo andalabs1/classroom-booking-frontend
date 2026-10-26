@@ -6,6 +6,9 @@ import type { AuditLog } from "../../../shared/api/admin";
 import { DataTable, PageHeader, Panel, QueryState } from "../../../shared/components/common/Common";
 import styles from "../styles/Admin.module.css";
 
+/**
+ * แสดง audit logs พร้อมตัวกรอง action/entity และข้อมูลผู้กระทำจาก admin API
+ */
 export function AuditLogsPage() {
   const { t, i18n } = useTranslation();
   const [action, setAction] = useState<string>();

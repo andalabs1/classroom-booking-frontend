@@ -22,12 +22,18 @@ type RegisterValues = {
   password: string
   confirmPassword: string
 }
+/**
+ * สร้าง schema ของ username/password/remember พร้อมข้อความ validation ตามภาษา
+ */
 const createLoginSchema = (t: Translate) =>
   z.object({
     username: z.string().min(1, t('validationUsername')),
     password: z.string().min(1, t('validationPassword')),
     remember: z.boolean(),
   })
+/**
+ * ตรวจข้อมูลสมัครสมาชิก รูปแบบเบอร์/อีเมล และยืนยันว่ารหัสผ่านสองช่องตรงกัน
+ */
 const createRegisterSchema = (t: Translate) =>
   z
     .object({
@@ -46,6 +52,9 @@ const createRegisterSchema = (t: Translate) =>
 type LoginPortal = 'user' | 'admin'
 const REMEMBERED_USERNAME_KEY = 'classroom-remembered-username'
 
+/**
+ * อ่านเฉพาะ username ที่จำไว้ของ portal และคืนค่าว่างเมื่อ storage ใช้งานไม่ได้
+ */
 function getRememberedUsername(portal: LoginPortal) {
   if (typeof window === 'undefined') return ''
   try {
@@ -55,6 +64,10 @@ function getRememberedUsername(portal: LoginPortal) {
   }
 }
 
+/**
+ * บันทึกหรือลบ username ตามตัวเลือก remember ของ portal โดยไม่เก็บรหัสผ่าน
+ * หาก browser ปิด storage ให้ข้ามเพื่อไม่ขัดขวางการเข้าสู่ระบบ
+ */
 function saveRememberedUsername(portal: LoginPortal, username: string, remember: boolean) {
   if (typeof window === 'undefined') return
   const key = `${REMEMBERED_USERNAME_KEY}:${portal}`
@@ -66,6 +79,9 @@ function saveRememberedUsername(portal: LoginPortal, username: string, remember:
   }
 }
 
+/**
+ * แสดงภาพและข้อความประกอบของหน้าลงชื่อเข้าใช้และสมัครสมาชิกตามภาษาปัจจุบัน
+ */
 function AuthVisualPanel() {
   const { t } = useTranslation()
 
@@ -81,6 +97,10 @@ function AuthVisualPanel() {
   )
 }
 
+/**
+ * จัดการฟอร์ม login ตรวจว่า role ตรงกับ portal แล้วจึงเก็บ session
+ * นำกลับไปหน้าที่ขอไว้เฉพาะเส้นทางภายในที่อนุญาต หรือใช้หน้าเริ่มต้นของ portal
+ */
 export function LoginPage({ portal = 'user' }: { portal?: LoginPortal }) {
   const { t } = useTranslation()
   const isAdminPortal = portal === 'admin'
@@ -136,6 +156,7 @@ export function LoginPage({ portal = 'user' }: { portal?: LoginPortal }) {
                     saveRememberedUsername(portal, credentials.username, remember)
                     setSession(user, token)
                     const from = (location.state as { from?: string } | null)?.from
+                    // ยอมรับปลายทางภายใน portal เท่านั้น และกัน URL แบบ //host ที่พาออกนอกเว็บ
                     const validFrom = isAdminPortal
                       ? from?.startsWith('/admin/')
                       : from?.startsWith('/') && !from.startsWith('//') && !from.startsWith('/admin/')
@@ -210,6 +231,9 @@ export function LoginPage({ portal = 'user' }: { portal?: LoginPortal }) {
     </div>
   )
 }
+/**
+ * แปลงฟอร์มสมัครเป็น payload API และกลับหน้า login เมื่อสร้างบัญชีสำเร็จ
+ */
 export function RegisterPage() {
   const { t } = useTranslation()
   const {

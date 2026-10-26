@@ -70,11 +70,17 @@ export type ScheduledBooking = {
 
 export type ScheduledClassroom = Room & { bookings: ScheduledBooking[] }
 
+/**
+ * คืน data เมื่อ API ระบุ success; โยน Error พร้อมข้อความ backend เมื่อ HTTP สำเร็จแต่ผลธุรกิจไม่สำเร็จ
+ */
 function dataOrThrow<T>(response: ApiResponse<T>): T {
   if (!response.success) throw new Error(response.message ?? 'ดำเนินการไม่สำเร็จ')
   return response.data
 }
 
+/**
+ * แปลงห้อง API เป็น Room โดยทำ ID เป็น string ชั้นเป็น number และเติมค่า fallback สำหรับ UI
+ */
 export function toRoom(room: ApiClassroom): Room {
   return {
     id: String(room.id),
@@ -91,6 +97,9 @@ export function toRoom(room: ApiClassroom): Room {
   }
 }
 
+/**
+ * ประกอบ query ช่วงเวลา และส่ง classroomIds เป็นข้อความคั่น comma เมื่อมีห้องที่เลือก
+ */
 function rangeParams(range: ClassroomRange) {
   return {
     startAt: range.startAt,
@@ -100,6 +109,9 @@ function rangeParams(range: ClassroomRange) {
 }
 
 export const classroomsApi = {
+  /**
+   * โหลดห้องผ่าน public client ตามตัวกรอง และคืนรายการที่แปลงพร้อมข้อมูลแบ่งหน้าจาก API
+   */
   async list(filters: ClassroomFilters = {}) {
     const response = await axiosClient.get<ApiListResponse<ApiClassroom[]>>('/classrooms', { params: filters })
     return {
@@ -110,6 +122,9 @@ export const classroomsApi = {
     }
   },
 
+  /**
+   * ตรวจห้องว่างหลายห้องในช่วงเดียว แล้วคืน Room พร้อม available และ conflicts ของแต่ละห้อง
+   */
   async availability(range: ClassroomRange) {
     const response = await axiosClient.get<
       ApiResponse<{
@@ -129,6 +144,10 @@ export const classroomsApi = {
     }
   },
 
+  /**
+   * โหลดตารางหลายห้องแล้วแปลง ID เป็น string
+   * UI รวม CONFIRMED และ IN_USE เป็น APPROVED สำหรับแสดงช่วงเวลาที่ถูกจอง
+   */
   async schedule(range: ClassroomRange) {
     const response = await axiosClient.get<
       ApiResponse<{
@@ -153,11 +172,17 @@ export const classroomsApi = {
     }
   },
 
+  /**
+   * โหลดห้องรายรายการจาก public API และคืน Room ที่มีค่า fallback พร้อมแสดงผล
+   */
   async get(id: string) {
     const response = await axiosClient.get<ApiResponse<ApiClassroom>>(`/classrooms/${encodeURIComponent(id)}`)
     return toRoom(dataOrThrow(response.data))
   },
 
+  /**
+   * ตรวจห้องว่างรายห้องตาม startAt/endAt และคืน available จาก backend
+   */
   async availabilityForRoom(id: string, range: Omit<ClassroomRange, 'classroomIds'>) {
     const response = await axiosClient.get<ApiResponse<{ available: boolean }>>(`/classrooms/${encodeURIComponent(id)}/availability`, {
       params: range,

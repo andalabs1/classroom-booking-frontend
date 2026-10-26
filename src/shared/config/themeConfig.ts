@@ -25,6 +25,9 @@ export const appTheme: ThemeConfig = {
   },
 };
 
+/**
+ * คืน Ant Design theme ตาม light/dark โดยต่อยอด token และ component config กลาง
+ */
 export function getAppTheme(mode: "light" | "dark"): ThemeConfig {
   if (mode === "light")
     return { ...appTheme, algorithm: theme.defaultAlgorithm };

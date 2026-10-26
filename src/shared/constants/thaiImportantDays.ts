@@ -31,6 +31,10 @@ const yearSpecificDays: Record<string, ThaiImportantDay[]> = {
   "2026-12-07": [{ labelKey: "calendarFathersDaySubstitute" }],
 };
 
+/**
+ * คืนวันสำคัญจากทั้งวันประจำปีและวันที่ระบุเฉพาะปีตามคีย์ YYYY-MM-DD
+ * ใช้ข้อมูลที่ประกาศไว้โดยตรงสำหรับวันจันทรคติและวันหยุดชดเชย
+ */
 export function getThaiImportantDays(dateKey: string): ThaiImportantDay[] {
   return [
     ...(fixedDays[dateKey.slice(5)] ?? []),

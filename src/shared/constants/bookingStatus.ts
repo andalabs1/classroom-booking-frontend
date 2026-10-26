@@ -9,6 +9,9 @@ const bookingLabelKeys: Record<BookingStatus, string> = {
   COMPLETED: "bookingCompleted",
   NO_SHOW: "bookingNoShow",
 };
+/**
+ * สร้างชื่อแสดงผลของทุกสถานะจาก t ที่รับมา เพื่อให้เปลี่ยนตามภาษาปัจจุบัน
+ */
 export const getBookingLabels = (t: TFunction): Record<BookingStatus, string> =>
   Object.fromEntries(
     Object.entries(bookingLabelKeys).map(([status, key]) => [status, t(key)]),
@@ -42,5 +45,8 @@ export const equipmentLabelKeys: Record<string, string> = {
   TV: "equipmentTelevision",
   HDMI: "equipmentHdmi",
 };
+/**
+ * แปลชื่ออุปกรณ์ที่รู้จัก และใช้ข้อความเดิมเป็น translation key เมื่อไม่มี mapping
+ */
 export const getEquipmentLabel = (t: TFunction, equipment: string) =>
   t(equipmentLabelKeys[equipment] ?? equipment);

@@ -10,6 +10,9 @@ import { PageHeader, Panel, QueryState } from "../../../shared/components/common
 import { BookingSummary } from "../components/BookingSummary";
 import { BookingStatusTag } from "../../../shared/components/data-display/StatusTags";
 import styles from "../styles/Booking.module.css";
+/**
+ * อ่าน booking-draft จาก sessionStorage และตรวจด้วย bookingSchema; คืน null เมื่ออ่านหรือ parse ไม่ผ่าน
+ */
 function getDraft() {
   try {
     return bookingSchema.parse(
@@ -19,6 +22,10 @@ function getDraft() {
     return null;
   }
 }
+/**
+ * แสดง draft และโหลดห้องล่าสุดก่อนยืนยัน; editingId เลือก API แก้ไขแทนสร้างใหม่
+ * เมื่อสำเร็จล้าง draft และแสดงผลการจอง ส่วนกรณีไม่มี draft ส่งกลับหน้าจอง
+ */
 export function BookingConfirmPage() {
   const { t } = useTranslation();
   const [draft] = useState(getDraft);

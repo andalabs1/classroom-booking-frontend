@@ -23,6 +23,9 @@ import { PageHeader, QueryState } from "../../../shared/components/common/Common
 import { RoomCard } from "../components/RoomCard";
 import { equipmentOptions } from "../../../shared/constants/bookingStatus";
 import styles from "../styles/Rooms.module.css";
+/**
+ * โหลดห้องสูงสุด 100 รายการและสถานะว่างช่วงชั่วโมงปัจจุบัน แล้วกรอง/เรียง/แบ่งหน้าใน browser
+ */
 export function RoomListPage() {
   const query = useClassrooms({ limit: 100 });
   const navigate = useNavigate();
@@ -55,6 +58,7 @@ export function RoomListPage() {
         }
       : undefined,
   );
+  // BUSY เป็นผลตรวจการจองช่วงชั่วโมงนี้ แยกจากสถานะเปิดใช้งาน ACTIVE ของห้อง
   const busyIds = new Set(
     availabilityQuery.data?.rooms
       .filter((room) => !room.available)
@@ -91,6 +95,9 @@ export function RoomListPage() {
     page,
     Math.max(1, Math.ceil(filtered.length / 6)),
   );
+  /**
+   * ล้างตัวกรองและกลับหน้าแรก โดยเก็บโหมดแสดงผลและการเรียงที่ผู้ใช้เลือกไว้
+   */
   const reset = () => {
     setSearch("");
     setBuilding(undefined);

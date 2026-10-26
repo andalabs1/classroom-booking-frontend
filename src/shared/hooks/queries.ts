@@ -14,6 +14,9 @@ import { usersApi } from "../api/users";
 import { adminApi, type AdminFilters, type ReportFilters } from "../api/admin";
 import type { AuthPortal } from "../stores/authStore";
 
+/**
+ * โหลดรายการห้องและผูก cache กับ filters เพื่อให้แต่ละชุดตัวกรองมีผลลัพธ์แยกกัน
+ */
 export function useClassrooms(filters: ClassroomFilters = {}) {
   return useQuery({
     queryKey: ["classrooms", filters],
@@ -21,6 +24,9 @@ export function useClassrooms(filters: ClassroomFilters = {}) {
   });
 }
 
+/**
+ * โหลดห้องตาม ID และปิด query จนกว่าจะมี ID เพื่อไม่ส่ง request ของค่าที่ยังไม่ถูกเลือก
+ */
 export function useClassroom(id: string | undefined) {
   return useQuery({
     queryKey: ["classrooms", id],
@@ -29,6 +35,9 @@ export function useClassroom(id: string | undefined) {
   });
 }
 
+/**
+ * โหลดห้องว่างตาม range; เปิด query เฉพาะเมื่อมี classroomIds อย่างน้อยหนึ่งห้อง
+ */
 export function useClassroomsAvailability(range: ClassroomRange | undefined) {
   return useQuery({
     queryKey: ["classrooms", "availability", range],
@@ -37,6 +46,9 @@ export function useClassroomsAvailability(range: ClassroomRange | undefined) {
   });
 }
 
+/**
+ * โหลดตารางตาม range และ ID ห้องที่เลือก; ไม่ส่ง request ขณะยังไม่มีห้อง
+ */
 export function useClassroomSchedule(range: ClassroomRange | undefined) {
   return useQuery({
     queryKey: ["classrooms", "schedule", range],
@@ -45,6 +57,9 @@ export function useClassroomSchedule(range: ClassroomRange | undefined) {
   });
 }
 
+/**
+ * โหลดรายการจองผ่าน user client โดยใช้ filters เป็นส่วนหนึ่งของ query key
+ */
 export function useBookings(filters: BookingFilters = {}) {
   return useQuery({
     queryKey: ["bookings", filters],
@@ -52,6 +67,9 @@ export function useBookings(filters: BookingFilters = {}) {
   });
 }
 
+/**
+ * โหลดรายละเอียด booking เมื่อมี ID และเก็บ cache รายรายการแยกจากรายการค้นหา
+ */
 export function useBooking(id: string | undefined) {
   return useQuery({
     queryKey: ["bookings", id],
@@ -60,6 +78,9 @@ export function useBooking(id: string | undefined) {
   });
 }
 
+/**
+ * โหลดแจ้งเตือนและแยก cache ตาม portal/filters เพื่อให้ user กับ admin ไม่ใช้ผลลัพธ์ชุดเดียวกัน
+ */
 export function useNotifications(portal: AuthPortal, filters: NotificationFilters = {}) {
   return useQuery({
     queryKey: ["notifications", portal, filters],
@@ -67,6 +88,9 @@ export function useNotifications(portal: AuthPortal, filters: NotificationFilter
   });
 }
 
+/**
+ * โหลดจำนวนยังไม่อ่านของ portal โดยใช้ query key แยกจากรายการแจ้งเตือน
+ */
 export function useUnreadNotificationCount(portal: AuthPortal) {
   return useQuery({
     queryKey: ["notifications", portal, "unread-count"],
@@ -74,10 +98,16 @@ export function useUnreadNotificationCount(portal: AuthPortal) {
   });
 }
 
+/**
+ * โหลดโปรไฟล์ปัจจุบันของ user portal และใช้ cache ใต้กลุ่ม users/me
+ */
 export function useMyProfile() {
   return useQuery({ queryKey: ["users", "me"], queryFn: usersApi.me });
 }
 
+/**
+ * โหลดประวัติของผู้ใช้ปัจจุบันสูงสุด 100 รายการสำหรับกรองและแบ่งหน้าในหน้าประวัติ
+ */
 export function useMyBookings() {
   return useQuery({
     queryKey: ["users", "me", "bookings"],
@@ -85,6 +115,9 @@ export function useMyBookings() {
   });
 }
 
+/**
+ * โหลดกติกาการจองจาก backend และถือข้อมูลว่ายังสดนานห้านาทีก่อน refetch ตามนโยบาย query
+ */
 export function useBusinessRules() {
   return useQuery({
     queryKey: ["config", "business-rules"],
@@ -93,26 +126,44 @@ export function useBusinessRules() {
   });
 }
 
+/**
+ * โหลดตัวเลข dashboard ผ่าน admin client และเก็บ cache ใต้กลุ่ม admin
+ */
 export function useAdminDashboard() {
   return useQuery({ queryKey: ["admin", "dashboard"], queryFn: adminApi.dashboardSummary });
 }
 
+/**
+ * โหลดกราฟและสัดส่วนสถานะรวมสำหรับ dashboard; ข้อมูลไม่ขึ้นกับ report filters
+ */
 export function useAdminReportSummary() {
   return useQuery({ queryKey: ["admin", "reports", "summary"], queryFn: adminApi.reportsSummary });
 }
 
+/**
+ * โหลดการจองที่สร้างล่าสุดแปดรายการสำหรับแสดงบน dashboard
+ */
 export function useAdminRecentBookings() {
   return useQuery({ queryKey: ["admin", "recent-bookings"], queryFn: () => adminApi.recentBookings(8) });
 }
 
+/**
+ * โหลดห้องตาม filters สำหรับ admin โดยแยก cache ออกจาก public classrooms
+ */
 export function useAdminClassrooms(filters: AdminFilters = {}) {
   return useQuery({ queryKey: ["admin", "classrooms", filters], queryFn: () => adminApi.classrooms(filters) });
 }
 
+/**
+ * โหลดรายละเอียดห้องและประวัติของ admin เมื่อมี ID
+ */
 export function useAdminClassroom(id: string | undefined) {
   return useQuery({ queryKey: ["admin", "classrooms", id], queryFn: () => adminApi.classroom(id!), enabled: Boolean(id) });
 }
 
+/**
+ * โหลดการจอง admin ตาม filters; live=true ให้ refetch ทุกสิบวินาทีขณะหน้าอยู่ foreground
+ */
 export function useAdminBookings(
   filters: AdminFilters = {},
   options: { live?: boolean } = {},
@@ -125,18 +176,31 @@ export function useAdminBookings(
   });
 }
 
+/**
+ * โหลดรายละเอียดการจองพร้อม audit history ของ admin เมื่อเลือก ID
+ */
 export function useAdminBooking(id: string | undefined) {
   return useQuery({ queryKey: ["admin", "bookings", id], queryFn: () => adminApi.booking(id!), enabled: Boolean(id) });
 }
 
+/**
+ * โหลดผู้ใช้ตาม filters ด้วย admin client และแยก cache ตามชุดตัวกรอง
+ */
 export function useAdminUsers(filters: AdminFilters = {}) {
   return useQuery({ queryKey: ["admin", "users", filters], queryFn: () => adminApi.users(filters) });
 }
 
+/**
+ * โหลดโปรไฟล์และประวัติของผู้ใช้สำหรับ admin เมื่อมี ID
+ */
 export function useAdminUser(id: string | undefined) {
   return useQuery({ queryKey: ["admin", "users", id], queryFn: () => adminApi.user(id!), enabled: Boolean(id) });
 }
 
+/**
+ * โหลด summary/bookings/classrooms/users แบบขนานเป็นผล query เดียว
+ * filters ใช้กับสามรายงานรายละเอียด ส่วน summary เป็นยอดรวมที่ไม่ได้กรอง
+ */
 export function useAdminReports(filters: ReportFilters = {}) {
   return useQuery({
     queryKey: ["admin", "reports", filters],
@@ -152,9 +216,16 @@ export function useAdminReports(filters: ReportFilters = {}) {
   });
 }
 
+/**
+ * โหลด audit logs ตาม filters และเก็บ cache ใต้กลุ่ม admin/audit-logs
+ */
 export function useAuditLogs(filters: AdminFilters = {}) {
   return useQuery({ queryKey: ["admin", "audit-logs", filters], queryFn: () => adminApi.auditLogs(filters) });
 }
+/**
+ * สร้าง mutation ที่แสดง error/success message และ invalidate cache กลุ่มข้อมูลที่เกี่ยวข้องเมื่อสำเร็จ
+ * คืน mutation ให้ caller ใช้ mutate/mutateAsync; การ invalidate เริ่มแบบไม่รอ refetch จบ
+ */
 export function useAction<T, R>(
   action: (value: T) => Promise<R>,
   success?: string,

@@ -12,6 +12,9 @@ import styles from "../styles/Admin.module.css";
 
 type NoteAction = "reject" | "cancel" | "no-show";
 
+/**
+ * ค้นหาการจองแบบ live พร้อมรายละเอียด/audit history และเลือก action ตามสถานะปัจจุบัน
+ */
 export function AdminBookingsPage() {
   const { t } = useTranslation();
   const bookingLabels = getBookingLabels(t);
@@ -43,6 +46,9 @@ export function AdminBookingsPage() {
     },
     t("adminBookingUpdated"),
   );
+  /**
+   * แสดงกล่องยืนยัน approve/start/complete และคืน Promise ให้ modal รอผล mutation ก่อนปิด
+   */
   const confirm = (booking: AdminBooking, action: "approve" | "start" | "complete") => modal.confirm({
     title: t("adminConfirmStatus"), content: `${booking.bookingCode} · ${booking.date} ${booking.start}–${booking.end}`,
     okText: t("adminConfirm"), cancelText: t("adminBack"), onOk: () => change.mutateAsync({ id: booking.id, action }),

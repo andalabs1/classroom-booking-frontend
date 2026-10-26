@@ -11,6 +11,9 @@ import type { BookingStatus, Role } from "../../../shared/types/index";
 import { Analytics } from "../components/Analytics";
 import styles from "../styles/Admin.module.css";
 
+/**
+ * รวมตัวกรองรายงาน ตารางและกราฟ พร้อมส่งออก CSV ด้วย filters ชุดเดียวกับหน้าจอ
+ */
 export function ReportsPage() {
   const { t } = useTranslation();
   const bookingLabels = getBookingLabels(t);
@@ -36,7 +39,13 @@ export function ReportsPage() {
   const query = useAdminReports(filters);
   const rooms = useAdminClassrooms({ limit: 100 });
   const roomOptions = rooms.data?.items ?? [];
+  /**
+   * ตัดค่าซ้ำและเรียงข้อความจากข้อมูลห้องที่โหลดมา เพื่อสร้างตัวเลือกตัวกรอง
+   */
   const uniqueValues = (values: string[]) => [...new Set(values)].sort();
+  /**
+   * โหลด CSV เป็น Blob สร้าง object URL เพื่อดาวน์โหลด แล้วคืนทรัพยากรด้วย revokeObjectURL
+   */
   const download = async () => {
     const blob = await adminApi.exportBookings(filters);
     const url = URL.createObjectURL(blob);

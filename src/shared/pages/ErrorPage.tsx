@@ -1,6 +1,9 @@
 import { Button, Result } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+/**
+ * แสดงหน้าข้อผิดพลาดตาม code และลิงก์กลับหน้าใช้งานหลัก
+ */
 export function ErrorPage({ code = "404" }: { code?: "403" | "404" | "500" }) {
   const navigate = useNavigate();
   const { t } = useTranslation();

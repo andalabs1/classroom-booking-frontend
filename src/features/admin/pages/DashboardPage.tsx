@@ -15,6 +15,9 @@ import type { AdminBooking } from "../../../shared/api/admin";
 import { Analytics } from "../components/Analytics";
 import styles from "../styles/Admin.module.css";
 
+/**
+ * โหลดสรุป dashboard รายงานรวม รายการล่าสุด และข้อมูลกราฟ แล้วรวมสถานะโหลด/error ของแต่ละ query
+ */
 export function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();

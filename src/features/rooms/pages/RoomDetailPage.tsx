@@ -8,6 +8,9 @@ import { PageHeader, Panel, QueryState } from "../../../shared/components/common
 import { RoomStatusTag } from "../../../shared/components/data-display/StatusTags";
 import { getEquipmentLabel } from "../../../shared/constants/bookingStatus";
 import styles from "../styles/Rooms.module.css";
+/**
+ * โหลดห้องตาม roomId จาก URL และแสดงรายละเอียดพร้อมลิงก์ตารางและเริ่มจอง
+ */
 export function RoomDetailPage() {
   const { roomId } = useParams();
   const query = useClassroom(roomId);
