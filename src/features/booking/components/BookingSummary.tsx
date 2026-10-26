@@ -3,6 +3,9 @@ import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import type { BookingDraft, Room } from "../../../shared/types/index";
 import styles from "../styles/Booking.module.css";
+/**
+ * แสดงสรุป draft กับข้อมูลห้องที่โหลดแยก โดยจัดวันที่และหัวข้อตามภาษาปัจจุบัน
+ */
 export function BookingSummary({
   draft,
   room,

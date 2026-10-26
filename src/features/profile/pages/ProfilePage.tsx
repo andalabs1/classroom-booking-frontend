@@ -14,6 +14,9 @@ type PasswordValues = {
   confirmPassword: string
 }
 
+/**
+ * แก้โปรไฟล์และเปลี่ยนรหัสผ่านจากฟอร์มแยกกัน พร้อมปรับ session หลังบันทึกโปรไฟล์สำเร็จ
+ */
 function ProfileForm({ profile }: { profile: UserProfile }) {
   const { t } = useTranslation()
   const token = useUserAuth((state) => state.token)
@@ -152,6 +155,9 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
   )
 }
 
+/**
+ * โหลดโปรไฟล์ล่าสุดและแสดง loading/error/retry ก่อนส่งข้อมูลเข้า ProfileForm
+ */
 export function ProfilePage() {
   const { t } = useTranslation()
   const query = useMyProfile()

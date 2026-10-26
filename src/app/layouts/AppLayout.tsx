@@ -22,6 +22,10 @@ import { adminMenuConfig } from '../config/adminMenuConfig'
 import { getAuthStore } from '../../shared/stores/authStore'
 import { authApi } from '../../shared/api/auth'
 import styles from './AppLayout.module.css'
+/**
+ * โครงหน้าหลักที่เลือกเมนู session และการแจ้งเตือนตาม user/admin portal
+ * จัด sidebar/mobile drawer การเปลี่ยนภาษา ธีม และการ logout ของ portal ปัจจุบัน
+ */
 export function AppLayout({ admin = false }: { admin?: boolean }) {
   const [drawer, setDrawer] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
@@ -35,6 +39,9 @@ export function AppLayout({ admin = false }: { admin?: boolean }) {
   const { modal } = App.useApp()
   const menus = admin ? adminMenuConfig : userMenuConfig
   const active = menus.find((m) => location.pathname === m.path || location.pathname.startsWith(m.path + '/'))
+  /**
+   * เปิดกล่องข้อมูลขั้นตอนจองและช่องทางติดต่อในภาษาปัจจุบัน
+   */
   const help = () =>
     modal.info({
       title: t('helpTitle'),

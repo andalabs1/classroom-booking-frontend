@@ -4,6 +4,9 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styles from "./Common.module.css";
+/**
+ * แสดงหัวข้อ คำอธิบาย ปุ่ม action และปุ่มย้อนกลับตามค่าที่แต่ละหน้าส่งมา
+ */
 export function PageHeader({
   title,
   subtitle,
@@ -36,6 +39,10 @@ export function PageHeader({
     </div>
   );
 }
+/**
+ * ครอบ Ant Design Table ด้วยค่า rowKey/scroll/pagination/empty state กลาง
+ * props ที่ caller ส่งมาสามารถเขียนทับค่าเริ่มต้นได้
+ */
 export function DataTable<T extends object>(props: TableProps<T>) {
   const { t } = useTranslation();
   return (
@@ -49,6 +56,9 @@ export function DataTable<T extends object>(props: TableProps<T>) {
     />
   );
 }
+/**
+ * เลือกแสดง skeleton, error พร้อม retry หรือ children ตามสถานะโหลดข้อมูล
+ */
 export function QueryState({
   isLoading,
   error,
@@ -74,6 +84,9 @@ export function QueryState({
     );
   return <>{children}</>;
 }
+/**
+ * ครอบเนื้อหาด้วย section และรูปแบบ panel กลาง พร้อมรับ className เพิ่มจากหน้าใช้งาน
+ */
 export function Panel({
   children,
   className = "",

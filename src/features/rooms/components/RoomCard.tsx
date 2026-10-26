@@ -16,6 +16,9 @@ import type { Room } from "../../../shared/types/index";
 import { RoomStatusTag } from "../../../shared/components/data-display/StatusTags";
 import { getEquipmentLabel } from "../../../shared/constants/bookingStatus";
 import styles from "../styles/Rooms.module.css";
+/**
+ * แสดงข้อมูลห้องแบบการ์ดร่วมกับสถานะ busy ที่ caller ส่งมา และนำไปดูรายละเอียดหรือเริ่มจอง
+ */
 export function RoomCard({ room, busy }: { room: Room; busy?: boolean }) {
   const navigate = useNavigate();
   const { t } = useTranslation();

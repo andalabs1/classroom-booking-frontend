@@ -14,12 +14,18 @@ import styles from "../styles/Booking.module.css";
 
 type ScheduleView = "day" | "week" | "month";
 
+/**
+ * คำนวณต้น/ปลายช่วง day/week/month ตาม locale ของ dayjs ที่แอปตั้งไว้
+ */
 function getScheduleRange(date: dayjs.Dayjs, view: ScheduleView) {
   const start = view === "day" ? date.startOf("day") : date.startOf(view);
   const end = view === "day" ? date.endOf("day") : date.endOf(view);
   return { start, end };
 }
 
+/**
+ * โหลดห้องและตารางของห้องที่เลือก แล้วแสดงรายวัน/สัปดาห์/เดือนพร้อมช่องเวลาจอง
+ */
 export function RoomSchedulePage() {
   const { t } = useTranslation();
   const [params] = useSearchParams();
@@ -48,6 +54,7 @@ export function RoomSchedulePage() {
         : visibleDays,
     [range.start, view, visibleDays],
   );
+  // API ใช้ขอบบนแบบ exclusive จึงส่งต้นวันถัดจากวันสุดท้ายที่แสดงในตาราง
   const scheduleQuery = useClassroomSchedule(
     selectedRoomId
       ? {
@@ -71,6 +78,10 @@ export function RoomSchedulePage() {
     t("roomScheduleFriday"),
     t("roomScheduleSaturday"),
   ];
+  /**
+   * ตรวจห้องว่างกับ backend อีกครั้งก่อนส่งวัน/เวลาใน URL ไปหน้าจอง
+   * หากชนให้ refresh ตาราง และคืนสถานะ loading ของ slot ทุกครั้งใน finally
+   */
   const selectSlot = async (start: string, end: string) => {
     const slotId = `${start}-${end}`;
     setCheckingSlot(slotId);

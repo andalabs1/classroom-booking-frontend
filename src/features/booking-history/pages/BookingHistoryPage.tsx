@@ -18,6 +18,9 @@ import {
 import { BookingStatusTag } from "../../../shared/components/data-display/StatusTags";
 import { BookingSummary } from "../../booking/components/BookingSummary";
 import styles from "../../booking/styles/Booking.module.css";
+/**
+ * กรอง/เรียงประวัติที่โหลดมา รองรับเปิดรายละเอียดจาก booking query param และแก้ไข/ยกเลิก/check-in
+ */
 export function BookingHistoryPage() {
   const { t } = useTranslation();
   const query = useMyBookings();
@@ -30,6 +33,9 @@ export function BookingHistoryPage() {
     selectedLocal ??
     query.data?.items.find((b) => b.id === params.get("booking"));
   const bookingQuery = useBooking(selected?.id);
+  /**
+   * ปิดรายละเอียดและลบ booking query param ด้วย replace เพื่อไม่ให้ modal เปิดซ้ำจาก URL เดิม
+   */
   const closeDetails = () => {
     setSelected(undefined);
     const next = new URLSearchParams(params);

@@ -21,20 +21,32 @@ type BookableTimeRange = {
   close: number
 }
 
+/**
+ * แปลง HH:mm เป็นจำนวนนาทีจากเที่ยงคืนสำหรับเทียบช่วงเวลาที่เลือกได้
+ */
 function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(':').map(Number)
   return hours * 60 + minutes
 }
 
+/**
+ * แปลงจำนวนนาทีจากเที่ยงคืนเป็น HH:mm สำหรับค่าในฟอร์ม
+ */
 function minutesToTime(minutes: number) {
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
 }
 
+/**
+ * คืน slot ครึ่งชั่วโมงถัดจากนาทีปัจจุบันอย่างเคร่งครัด เพื่อไม่เลือกเวลาเริ่มที่มาถึงแล้ว
+ */
 function nextHalfHour(now: dayjs.Dayjs) {
   const currentMinutes = now.hour() * 60 + now.minute()
   return Math.ceil((currentMinutes + 1) / BOOKING_TIME_STEP) * BOOKING_TIME_STEP
 }
 
+/**
+ * คืนเวลาเริ่มต่ำสุดและเวลาปิดเป็นนาที; วันปัจจุบันต้องเริ่มหลังเวลาตอนนี้ตาม browser
+ */
 function getBookableTimeRange(date: string, openTime: string, closeTime: string, now = dayjs()): BookableTimeRange {
   const open = timeToMinutes(openTime)
   const close = timeToMinutes(closeTime)
@@ -46,6 +58,9 @@ function getBookableTimeRange(date: string, openTime: string, closeTime: string,
   }
 }
 
+/**
+ * เลือกช่วงเริ่มต้นไม่เกินหนึ่งชั่วโมงภายในเวลาเปิด/ปิด หรือเลื่อนไปพรุ่งนี้หากวันนี้เหลือไม่ถึงหนึ่ง slot
+ */
 function getDefaultBookingWindow(openTime: string, closeTime: string) {
   const now = dayjs()
   const today = now.format('YYYY-MM-DD')
@@ -62,6 +77,10 @@ function getDefaultBookingWindow(openTime: string, closeTime: string) {
   }
 }
 
+/**
+ * สร้าง callback ของ TimePicker ให้เลือก slot ครึ่งชั่วโมงในเวลาเปิดทำการ
+ * เวลาสิ้นสุดต้องห่างจากเวลาเริ่มอย่างน้อยหนึ่ง slot และไม่เกินเวลาปิด
+ */
 function disabledBookingTimes(range: BookableTimeRange, field: 'start' | 'end', selectedStart: string) {
   const earliest = field === 'end' && selectedStart ? Math.max(range.earliest, timeToMinutes(selectedStart) + BOOKING_TIME_STEP) : range.earliest
   const latest = field === 'start' ? range.close - BOOKING_TIME_STEP : range.close
@@ -71,13 +90,23 @@ function disabledBookingTimes(range: BookableTimeRange, field: 'start' | 'end', 
   )
 
   return {
+    /**
+     * ปิดชั่วโมงที่ไม่มี slot ใดเลือกได้ภายใต้ช่วงที่คำนวณแล้ว
+     */
     disabledHours: () =>
       Array.from({ length: 24 }, (_, hour) => hour).filter((hour) => !availableSlots.some((slot) => Math.floor(slot / 60) === hour)),
+    /**
+     * ปิดนาทีที่ไม่ตรงกับ slot ที่อนุญาตของชั่วโมงที่เลือก
+     */
     disabledMinutes: (hour: number) =>
       Array.from({ length: 60 }, (_, minute) => minute).filter((minute) => !availableSlots.includes(hour * 60 + minute)),
   }
 }
 
+/**
+ * รับ draft เดิมหรือค่าจาก URL ตั้งเวลาเริ่มต้นจาก business rules และตรวจห้องว่างก่อนเก็บ draft
+ * เก็บใน sessionStorage แล้วไปหน้ายืนยัน; การสร้างหรือแก้ booking จริงเกิดในหน้ายืนยัน
+ */
 export function BookingPage() {
   const { t } = useTranslation()
   const query = useClassrooms({ limit: 100 })
@@ -134,6 +163,7 @@ export function BookingPage() {
   }, [bookingCloseTime, bookingDate, bookingEnd, bookingOpenTime, bookingStart, setValue])
 
   const room = query.data?.items.find((r) => r.id === roomId)
+  // ตรวจเพื่อแจ้งผลก่อนหน้ายืนยัน; ตอนสร้าง/แก้ booking จริง backend จะตรวจเวลาชนซ้ำใน transaction
   const check = useAction(async (draft: BookingDraft) => {
     const availability = await classroomsApi.availabilityForRoom(draft.roomId, {
       startAt: `${draft.date}T${draft.start}:00+07:00`,

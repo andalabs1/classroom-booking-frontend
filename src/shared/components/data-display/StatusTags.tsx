@@ -2,6 +2,9 @@ import { Tag } from "antd";
 import { useTranslation } from "react-i18next";
 import type { BookingStatus, Room } from "../../types/index";
 import { bookingColors, getBookingLabels } from "../../constants/bookingStatus";
+/**
+ * แสดงสีและชื่อสถานะการจองจาก mapping กลางตามภาษาปัจจุบัน
+ */
 export function BookingStatusTag({ status }: { status: BookingStatus }) {
   const { t } = useTranslation();
   return (
@@ -10,6 +13,9 @@ export function BookingStatusTag({ status }: { status: BookingStatus }) {
     </Tag>
   );
 }
+/**
+ * แสดงสถานะห้องตามค่าที่ส่งมา; ห้อง ACTIVE ใช้ busy แยกการแสดงผลว่าง/กำลังใช้งาน
+ */
 export function RoomStatusTag({
   status,
   busy = false,

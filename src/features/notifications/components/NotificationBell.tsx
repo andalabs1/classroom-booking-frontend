@@ -24,6 +24,9 @@ import type { BookingNotification, User } from "../../../shared/types/index";
 import type { AuthPortal } from "../../../shared/stores/authStore";
 import styles from "../styles/Notifications.module.css";
 
+/**
+ * แสดงรายการและจำนวนยังไม่อ่านตาม portal พร้อมทำเครื่องหมายอ่านและเปิดรายการจองที่เกี่ยวข้อง
+ */
 export function NotificationBell({ user, portal }: { user: User; portal: AuthPortal }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -39,6 +42,9 @@ export function NotificationBell({ user, portal }: { user: User; portal: AuthPor
   const unread = unreadQuery.data ?? 0;
   const visible =
     filter === "unread" ? items.filter((item) => !item.readAt) : items;
+  /**
+   * เลือกไอคอนตาม kind ของแจ้งเตือน และใช้กระดิ่งเมื่อเป็นรายการทั่วไป
+   */
   const notificationIcon = (item: BookingNotification) => {
     if (item.kind === "APPROVED") return <CircleCheck size={17} />;
     if (item.kind === "REJECTED") return <CircleX size={17} />;
@@ -46,6 +52,9 @@ export function NotificationBell({ user, portal }: { user: User; portal: AuthPor
     if (item.kind === "REMINDER") return <CalendarClock size={17} />;
     return <Bell size={17} />;
   };
+  /**
+   * ทำเครื่องหมายอ่านให้สำเร็จก่อนปิดรายการ แล้วนำไปหน้าการจองตาม role เมื่อมี bookingId
+   */
   const openBooking = (item: BookingNotification) => {
     read.mutate(item.id, {
       onSuccess: () => {

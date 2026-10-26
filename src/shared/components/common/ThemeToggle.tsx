@@ -3,6 +3,9 @@ import { Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useThemeStore } from "../../stores/themeStore";
 
+/**
+ * แสดงปุ่มสลับธีมจาก Zustand store พร้อมชื่อและสถานะที่สอดคล้องกับภาษาและ accessibility
+ */
 export function ThemeToggle({ className }: { className?: string }) {
   const mode = useThemeStore((state) => state.mode);
   const toggle = useThemeStore((state) => state.toggle);

@@ -31,6 +31,10 @@ import styles from "../styles/Admin.module.css";
 
 type AnalyticsGranularity = "day" | "week" | "month";
 
+/**
+ * สร้าง bucket day/week/month ตลอดช่วงที่เลือกและเติมค่าศูนย์ในช่วงที่ไม่มีข้อมูล
+ * ใช้ trendData จาก API เมื่อส่งมา มิฉะนั้นนับ booking ตามวันที่ของแต่ละรายการ
+ */
 function getTimeline(
   bookings: Booking[],
   start: string,
@@ -65,6 +69,10 @@ function getTimeline(
   });
 }
 
+/**
+ * ประกอบกราฟแนวโน้ม สัดส่วนสถานะ และห้องยอดนิยมตามธีม/ภาษา
+ * ใช้ trendData/statusData จาก server เมื่อมี ส่วนอันดับห้องคำนวณจาก bookings ที่รับมา
+ */
 export function Analytics({
   bookings,
   rooms,

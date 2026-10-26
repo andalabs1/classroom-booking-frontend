@@ -17,6 +17,7 @@ import { BookingHistoryPage } from "../features/booking-history/pages/BookingHis
 import { ProfilePage } from "../features/profile/pages/ProfilePage";
 import { PermissionGuard } from "../shared/components/permission/PermissionGuard";
 import { ErrorPage } from "../shared/pages/ErrorPage";
+// แยก bundle ของหน้า admin เพื่อให้หน้าผู้ใช้ทั่วไปไม่ต้องโหลดโค้ดจัดการและกราฟทั้งหมดทันที
 const DashboardPage = lazy(() =>
   import("../features/admin/pages/DashboardPage").then((m) => ({
     default: m.DashboardPage,
@@ -99,6 +100,9 @@ const router = createBrowserRouter([
   { path: "*", element: <ErrorPage /> },
 ]);
 
+/**
+ * แสดง router ที่แยก public/user/admin routes และโหลดหน้า admin แบบ lazy เมื่อเข้าใช้งาน
+ */
 export function ApplicationRouter() {
   return <RouterProvider router={router} />;
 }
