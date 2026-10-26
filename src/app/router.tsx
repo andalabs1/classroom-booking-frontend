@@ -6,44 +6,44 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import { Skeleton } from "antd";
-import { AppLayout } from "../layouts/AppLayout";
-import { LoginPage, RegisterPage } from "../features/auth/AuthPage";
-import { RoomListPage } from "../features/rooms/RoomListPage";
-import { RoomDetailPage } from "../features/rooms/RoomDetailPage";
-import { RoomSchedulePage } from "../features/booking/RoomSchedulePage";
-import { BookingPage } from "../features/booking/BookingPage";
-import { BookingConfirmPage } from "../features/booking/BookingConfirmPage";
-import { BookingHistoryPage } from "../features/booking-history/BookingHistoryPage";
-import { ProfilePage } from "../features/profile/ProfilePage";
-import { PermissionGuard } from "../components/permission/PermissionGuard";
-import { ErrorPage } from "../pages/ErrorPage";
+import { AppLayout } from "./layouts/AppLayout";
+import { LoginPage, RegisterPage } from "../features/auth/pages/AuthPage";
+import { RoomListPage } from "../features/rooms/pages/RoomListPage";
+import { RoomDetailPage } from "../features/rooms/pages/RoomDetailPage";
+import { RoomSchedulePage } from "../features/booking/pages/RoomSchedulePage";
+import { BookingPage } from "../features/booking/pages/BookingPage";
+import { BookingConfirmPage } from "../features/booking/pages/BookingConfirmPage";
+import { BookingHistoryPage } from "../features/booking-history/pages/BookingHistoryPage";
+import { ProfilePage } from "../features/profile/pages/ProfilePage";
+import { PermissionGuard } from "../shared/components/permission/PermissionGuard";
+import { ErrorPage } from "../shared/pages/ErrorPage";
 const DashboardPage = lazy(() =>
-  import("../features/admin/DashboardPage").then((m) => ({
+  import("../features/admin/pages/DashboardPage").then((m) => ({
     default: m.DashboardPage,
   })),
 );
 const AdminRoomsPage = lazy(() =>
-  import("../features/admin/AdminRoomsPage").then((m) => ({
+  import("../features/admin/pages/AdminRoomsPage").then((m) => ({
     default: m.AdminRoomsPage,
   })),
 );
 const AdminBookingsPage = lazy(() =>
-  import("../features/admin/AdminBookingsPage").then((m) => ({
+  import("../features/admin/pages/AdminBookingsPage").then((m) => ({
     default: m.AdminBookingsPage,
   })),
 );
 const AdminUsersPage = lazy(() =>
-  import("../features/admin/AdminUsersPage").then((m) => ({
+  import("../features/admin/pages/AdminUsersPage").then((m) => ({
     default: m.AdminUsersPage,
   })),
 );
 const ReportsPage = lazy(() =>
-  import("../features/admin/ReportsPage").then((m) => ({
+  import("../features/admin/pages/ReportsPage").then((m) => ({
     default: m.ReportsPage,
   })),
 );
 const AuditLogsPage = lazy(() =>
-  import("../features/admin/AuditLogsPage").then((m) => ({
+  import("../features/admin/pages/AuditLogsPage").then((m) => ({
     default: m.AuditLogsPage,
   })),
 );
