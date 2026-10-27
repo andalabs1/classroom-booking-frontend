@@ -98,7 +98,7 @@ function RoomEditor({ room, onClose }: { room: Room; onClose: () => void }) {
 }
 
 /**
- * ค้นหาห้อง admin พร้อมสร้าง/แก้ข้อมูล เปลี่ยนสถานะ ปิดห้อง และเปิดประวัติรายห้อง
+ * ค้นหาห้อง admin พร้อมสร้าง/แก้ข้อมูล เปลี่ยนสถานะ ลบห้อง และเปิดประวัติรายห้อง
  */
 export function AdminRoomsPage() {
   const { t } = useTranslation();
@@ -115,7 +115,7 @@ export function AdminRoomsPage() {
   const query = useAdminClassrooms({ search: deferredSearch || undefined, limit: 100 });
   const detail = useAdminClassroom(detailId);
   const status = useAction(({ id, value }: { id: string; value: AdminRoomInput["status"] }) => adminApi.setClassroomStatus(id, value), t("adminRoomStatusUpdated"));
-  const remove = useAction(adminApi.deactivateClassroom, t("adminRoomDeactivated"));
+  const remove = useAction(adminApi.deleteClassroom, t("adminRoomDeleted"));
 
   return (
     <>
@@ -130,7 +130,7 @@ export function AdminRoomsPage() {
               <Tooltip title={t("adminViewRoom")}><Button size="small" aria-label={t("adminViewRoom")} icon={<Eye size={14} />} onClick={() => setDetailId(room.id)} /></Tooltip>
               <Tooltip title={t("adminEditRoomAction")}><Button size="small" aria-label={t("adminEditRoomAction")} icon={<Pencil size={14} />} onClick={() => setEditing(room)} /></Tooltip>
               <Tooltip title={t("adminChangeRoomStatus")}><Button size="small" aria-label={t("adminChangeRoomStatus")} icon={<Power size={14} />} onClick={() => setStatusRoom({ id: room.id, code: room.code, value: room.status })} /></Tooltip>
-              <Tooltip title={t("adminDeactivateRoom")}><Button size="small" danger aria-label={t("adminDeactivateRoom")} icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: t("adminDeactivateRoomConfirm"), content: room.code, okText: t("adminConfirm"), cancelText: t("adminBack"), okButtonProps: { danger: true }, onOk: () => remove.mutateAsync(room.id) })} /></Tooltip>
+              <Tooltip title={t("adminDeleteRoom")}><Button size="small" danger aria-label={t("adminDeleteRoom")} icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: t("adminDeleteRoomConfirm"), content: room.code, okText: t("adminConfirm"), cancelText: t("adminBack"), okButtonProps: { danger: true }, onOk: () => remove.mutateAsync(room.id) })} /></Tooltip>
             </div> },
           ]} />
         </Panel>

@@ -280,11 +280,18 @@ export const adminApi = {
   },
 
   /**
-   * เรียก DELETE เพื่อปิดห้องแบบ soft delete แล้วคืน Room ที่เปลี่ยนสถานะ
+   * เรียก DELETE เพื่อลบห้องจริง; backend จะปฏิเสธหากห้องมีประวัติการจอง
    */
-  async deactivateClassroom(id: string) {
+  async deleteClassroom(id: string) {
     const response = await axiosClient.delete<ApiResponse<ApiRoom>>(`/admin/classrooms/${encodeURIComponent(id)}`)
     return toRoom(dataOrThrow(response.data))
+  },
+
+  /**
+   * ชื่อเดิมที่คงไว้เพื่อความเข้ากันได้กับ consumer/เทสต์เก่า; endpoint ปัจจุบันลบห้องจริง
+   */
+  async deactivateClassroom(id: string) {
+    return this.deleteClassroom(id)
   },
 
   /**
