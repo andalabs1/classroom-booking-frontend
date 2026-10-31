@@ -5,6 +5,7 @@ import { toRoom } from './classrooms'
 import type { ApiResponse } from './types'
 import type { Booking, Role, Room, User } from '../types/index'
 
+// test2
 type ApiMeta = { page?: number; limit?: number; total?: number }
 type ApiListResponse<T> = ApiResponse<T> & { meta?: ApiMeta }
 type ApiRoom = Parameters<typeof toRoom>[0]
