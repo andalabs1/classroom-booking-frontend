@@ -7,6 +7,7 @@ export const colors = {
   green: "#399876",
   muted: "#9690A0",
 };
+
 export const appTheme: ThemeConfig = {
   token: {
     colorPrimary: colors.primary,
@@ -20,7 +21,12 @@ export const appTheme: ThemeConfig = {
   },
   components: {
     Button: { primaryShadow: "none" },
-    Table: { headerBg: "#FAF9FC", cellPaddingBlock: 16 },
+    // สีหัวตารางทุกหน้าอ่านจาก global.css ซึ่งสลับค่าตาม data-theme บน document
+    Table: {
+      headerBg: "var(--table-header-bg)",
+      headerColor: "var(--table-header-color)",
+      cellPaddingBlock: 16,
+    },
     Select: { optionSelectedBg: "#F1E9FC" },
   },
 };
@@ -48,7 +54,6 @@ export function getAppTheme(mode: "light" | "dark"): ThemeConfig {
     },
     components: {
       ...appTheme.components,
-      Table: { ...appTheme.components?.Table, headerBg: "#2A2335" },
       Select: { optionSelectedBg: "#3B2D4E" },
     },
   };

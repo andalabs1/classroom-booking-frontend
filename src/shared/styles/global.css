@@ -27,6 +27,11 @@
   --auth-background: linear-gradient(135deg, #f5f0fa, #f9f8ed);
   --border: #eeebf2;
   --purple-soft: #f2eafb;
+    /* สีหัวตาราง Ant Design ทุกหน้า: พื้นหลังและข้อความ */
+  --table-header-bg: #faf9fc;
+  --table-header-color: var(--text-primary);  /* สีหัวตาราง Ant Design ทุกหน้า: พื้นหลังและข้อความ */
+  --table-header-bg: #faf9fc;
+  --table-header-color: var(--text-primary);
   --green: #389578;
 }
 :root[data-theme="dark"] {
