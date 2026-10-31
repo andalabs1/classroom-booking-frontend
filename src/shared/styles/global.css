@@ -1,51 +1,86 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700;800&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700;800&display=swap');
 :root {
-  font-family: "Sarabun", sans-serif;
+  font-family: 'Sarabun', sans-serif;
   font-size: 16px;
   color: var(--text-primary);
   background: var(--page-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --color-cream: #fff4bf;
-  --color-pink: #ffbefb;
-  --color-purple-light: #dc95ff;
+  /* พื้นหลังไอคอนโลโก้ใน Sidebar */
   --color-purple-primary: #8c56d4;
   color-scheme: light;
+  /* พื้นหลังหลักของเว็บ กำหนดผ่าน :root */
   --page-background: #f8f9fc;
+  /* พื้นหลัง Sidebar, Header, Panel, การ์ดห้อง, ฟอร์ม และรายการแจ้งเตือน */
   --surface: #ffffff;
+  /* พื้นหลังส่วนรอง เช่น รูปห้องระหว่างโหลด ช่องเวลาว่าง และรายการเมื่อชี้เมาส์ */
   --surface-subtle: #faf7fe;
+  /* พื้นหลังแบนเนอร์ต้อนรับในหน้ารายการห้อง */
   --surface-banner: #f0e9f8;
+  /* ข้อความหลัก หัวข้อ ชื่อผู้ใช้ และค่าเริ่มต้นของข้อความหัวตาราง */
   --text-primary: #302c3a;
+  /* ข้อความ/ไอคอนเน้น เมนูที่เลือก แท็บ และรายการจองที่ยืนยันแล้วในตารางเวลา */
   --text-accent: #8c56d4;
+  /* ข้อความรอง คำอธิบาย เวลา รายละเอียดห้อง และชื่อเมนู */
   --text-muted: #898392;
+  /* ข้อความ/ไอคอนห้องซ่อมบำรุง การจองรออนุมัติ และแจ้งเตือนใกล้ถึงเวลา */
   --text-warning: #a58a3d;
+  /* ไอคอนสถิติจำนวนที่นั่งรวมในหน้ารายการห้อง */
   --text-pink: #c882b8;
+  /* พื้นหลังไอคอนสถิติห้องพร้อมใช้ และแจ้งเตือนการอนุมัติ */
   --green-soft: #eaf7f1;
+  /* พื้นหลังสถิติห้องซ่อมบำรุง การจองรออนุมัติ และแจ้งเตือนใกล้ถึงเวลา */
   --yellow-soft: #fff8df;
+  /* พื้นหลังสถิติจำนวนที่นั่งรวม และแจ้งเตือนการปฏิเสธ/ยกเลิก */
   --pink-soft: #fceef9;
+  /* พื้นหลังไล่สีของหน้าเข้าสู่ระบบ สมัครสมาชิก และลืมรหัสผ่าน */
   --auth-background: linear-gradient(135deg, #f5f0fa, #f9f8ed);
+  /* เส้นขอบและเส้นแบ่งของ Sidebar, Header, การ์ด, Panel, ฟอร์ม และตารางเวลา */
   --border: #eeebf2;
+  /* พื้นหลังเมนู/แท็บ/วันที่เลือก รายการจองที่ยืนยันแล้ว Avatar และแจ้งเตือนที่ยังไม่อ่าน */
   --purple-soft: #f2eafb;
+  /* พื้นหลังหัวตาราง Ant Design ทุกหน้า ผ่าน themeConfig.ts */
+  --table-header-bg: #faf9fc;
+  /* ข้อความหัวตาราง Ant Design ทุกหน้า อิงสีข้อความหลักตามโหมด */
+  --table-header-color: var(--text-primary);
+  /* ไอคอนสถิติห้องพร้อมใช้ แจ้งเตือนการอนุมัติ และสถานะบัญชีที่ใช้งานอยู่ในโปรไฟล์ */
   --green: #389578;
 }
-:root[data-theme="dark"] {
+/* ค่าโหมดมืดของตัวแปรด้านบน ใช้กับส่วนเดิม; ตัวที่ไม่เขียนทับสืบทอดจาก :root */
+:root[data-theme='dark'] {
   color-scheme: dark;
+  /* พื้นหลังหลักของเว็บ */
   --page-background: #16131d;
+  /* Sidebar, Header, Panel, การ์ด ฟอร์ม และรายการแจ้งเตือน */
   --surface: #211c2a;
+  /* ส่วนรอง รูปห้องระหว่างโหลด ช่องเวลาว่าง และรายการเมื่อชี้เมาส์ */
   --surface-subtle: #2a2335;
+  /* แบนเนอร์ต้อนรับหน้ารายการห้อง */
   --surface-banner: #2e223e;
+  /* ข้อความหลัก รวมถึงข้อความหัวตารางผ่าน --table-header-color */
   --text-primary: #eee9f5;
+  /* ข้อความรอง คำอธิบาย เวลา และรายละเอียด */
   --text-muted: #b2a8bf;
+  /* ข้อความ/ไอคอนเน้น เมนู แท็บ และการจองที่ยืนยันแล้วในตารางเวลา */
   --text-accent: #c5a0f3;
+  /* ห้องซ่อมบำรุง การจองรออนุมัติ และแจ้งเตือนใกล้ถึงเวลา */
   --text-warning: #e4c57b;
+  /* ไอคอนสถิติจำนวนที่นั่งรวม */
   --text-pink: #e6add6;
+  /* เส้นขอบและเส้นแบ่ง Layout, การ์ด ฟอร์ม Panel และตารางเวลา */
   --border: #40364d;
+  /* เมนู/แท็บ/วันที่เลือก การจองที่ยืนยันแล้ว Avatar และแจ้งเตือนที่ยังไม่อ่าน */
   --purple-soft: #362746;
+  /* ห้องพร้อมใช้ แจ้งเตือนการอนุมัติ และสถานะบัญชีในโปรไฟล์ */
   --green: #86cbb1;
+  /* พื้นหลังสถิติห้องพร้อมใช้และแจ้งเตือนการอนุมัติ */
   --green-soft: #203b32;
+  /* พื้นหลังห้องซ่อมบำรุง การจองรออนุมัติ และแจ้งเตือนใกล้ถึงเวลา */
   --yellow-soft: #3d3422;
+  /* พื้นหลังสถิติจำนวนที่นั่งรวมและแจ้งเตือนการปฏิเสธ/ยกเลิก */
   --pink-soft: #402b3c;
+  /* พื้นหลังหน้าเข้าสู่ระบบ สมัครสมาชิก และลืมรหัสผ่าน */
   --auth-background: linear-gradient(135deg, #19141f, #231d2c);
 }
 
@@ -85,8 +120,7 @@ h3 {
   font-size: 18px;
 }
 
-/* Keep controls and data dense enough for dashboards without dropping below
-   a comfortable reading size. Feature headings can still opt into larger sizes. */
+/* ขนาดข้อความกลางของคอนโทรลและตาราง ส่วนหัวข้อแต่ละหน้ากำหนดขนาดเองได้ */
 :where(
   .ant-btn,
   .ant-input,
@@ -106,9 +140,11 @@ h3 {
 svg {
   flex-shrink: 0;
 }
+/* พื้นหลังข้อความที่ผู้ใช้ลากเลือก */
 ::selection {
   background: #eee0ff;
 }
+/* เส้นกรอบปุ่มและลิงก์เมื่อโฟกัสด้วยแป้นพิมพ์ */
 button:focus-visible,
 a:focus-visible {
   outline: 3px solid #dc95ff;
