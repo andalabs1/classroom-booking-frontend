@@ -4,7 +4,8 @@ import "./shared/i18n/index";
 import "./shared/styles/global.css";
 import { App } from "./app/App";
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+// test
+<StrictMode>
     <App />
   </StrictMode>,
 );
